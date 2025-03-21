@@ -34,38 +34,45 @@ game_loop:
     beq $t2, 0x71, exit_game  # 'q' (0x71 ASCII for q)
     
 draw_pixel:
-    # Clear previous position
-    lw $t3, prev_y_pos    # Load previous y-coordinate
-    lw $t4, SCREEN_WIDTH  # Load screen width
-    mul $t3, $t3, $t4     # Calculate row offset (y * width)
-    lw $t5, prev_x_pos    # Load previous x-coordinate
-    add $t3, $t3, $t5     # Calculate final pixel index
+    # sb vs sw
+    # We use sb when storing the pixel color 
+    # We use sw when storing coordinates
 
-    sll $t3, $t3, 2       # Multiply by 4 (word size) to get the actual memory offset
+  
+    # Clear previous position
+    lw $t3, prev_y_pos    # loading prev y-coordinate
+    lw $t4, SCREEN_WIDTH  # load screen width ( i have this incase we change display width again)
+    mul $t3, $t3, $t4     # calculating row offset (y * width)
+    lw $t5, prev_x_pos    # loading in prev x-coordinate
+    add $t3, $t3, $t5     # final pixel index
+
+    sll $t3, $t3, 2       #  shift left logically by 2 bits, which is equivalent to multiplying by 4
+                          # We do this since pixel memory address are 4 bytes per pixel
+                          # sooo the correct memory offset for a pixel needs us to multiplying the pixel index by 4.
 
     lw $t6, DISPLAY_ADDR  # Load display base address
-    add $t6, $t6, $t3     # Final memory address for previous pixel
+    add $t6, $t6, $t3     # add the offset to the base address SOOO we get the exact pixel address
 
-    li $t7, 0x00          # Black pixel (erase)
-    sb $t7, 0($t6)        # Clear previous position
+    li $t7, 0x00          # black pixel... my prev bs reasoning on clearing board... obv change.. but for now yes
+    sb $t7, 0($t6)       
 
     # Update previous coordinates
-    lw $t3, x_pos
-    sw $t3, prev_x_pos
-    lw $t4, y_pos
-    sw $t4, prev_y_pos    # Store previous y position correctly
+    lw $t3, x_pos # load curr x pos into $t3
+    sw $t3, prev_x_pos # store as the prev x pos
+    lw $t4, y_pos  # load curr y pos into $t4
+    sw $t4, prev_y_pos    # store as the prev y pos
 
     # Draw new position
-    lw $t3, y_pos
-    lw $t4, SCREEN_WIDTH
-    mul $t3, $t3, $t4
-    lw $t5, x_pos
-    add $t3, $t3, $t5     # Final pixel index
+    lw $t5, SCREEN_WIDTH
+    mul $t4, $t4, $t5 # calculating row offset (y * width)
+    add $t4, $t4, $t3     # Final pixel index
 
-    sll $t3, $t3, 2       # Multiply by 4 (word size) to get the actual memory offset
+    sll $t4, $t4, 2       # shift left logically by 2 bits, which is equivalent to multiplying by 4
+                          # We do this since pixel memory address are 4 bytes per pixel
+                          # sooo the correct memory offset for a pixel needs us to multiplying the pixel index by 4.
 
     lw $t6, DISPLAY_ADDR  # Load display base address
-    add $t6, $t6, $t3     # Final memory address for new pixel
+    add $t6, $t6, $t4     # Final memory address for new pixel
 
     li $t7, 0xFF          # White pixel
     sb $t7, 0($t6)        # Draw new position
