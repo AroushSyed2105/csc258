@@ -63,6 +63,9 @@ draw_pixel:
     sw $t4, prev_y_pos    # store as the prev y pos
 
     # Draw new position
+    ### okay you are going to see that this section is essentially the same as clear prev postion..
+    ### THATS BECAUSE IN MY LOGIC I AM PAINTING A BLACK SQUARE ON THE PREV LOCATION
+    #### WHEREAS HERE I AM PAINTING A WHITE SQUARE ON NEW LOCATION
     lw $t5, SCREEN_WIDTH
     mul $t4, $t4, $t5 # calculating row offset (y * width)
     add $t4, $t4, $t3     # Final pixel index
