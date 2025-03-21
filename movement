@@ -4,6 +4,7 @@ DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
 KEYBOARD_ADDR:  .word 0xffff0000  # Memory-mapped address for the keyboard
 
 # Initial pixel position (X=32, Y=32) (center of 64x64 screen)
+
 # .word used for allocating and initalizing variable
 # okay full honesty when i was first starting this yestersay i saw this crappy video
 # and people used variable for x_pos and y_pos just to make it easier when updating
@@ -59,7 +60,7 @@ draw_pixel:
     add $t6, $t6, $t3     # add the offset to the base address SOOO we get the exact pixel address
 
     li $t7, 0x00          # black pixel... my prev bs reasoning on clearing board... obv change.. but for now yes
-    sb $t7, 0($t6) # storing black      
+    sw $t7, 0($t6) # storing black      
 
     # Update previous coordinates
     lw $t3, x_pos # load curr x pos into $t3
@@ -83,8 +84,8 @@ draw_pixel:
     lw $t6, DISPLAY_ADDR  # Load display base address
     add $t6, $t6, $t4     # Final memory address for new pixel
 
-    li $t7, 0xFF          # White pixel
-    sb $t7, 0($t6)        # Draw new position
+    li $t7, 0xFFFFFF          # White pixel
+    sw $t7, 0($t6)        # Draw new position
 
     # Sleep (for 60 FPS frame delay)
     syscall
@@ -94,7 +95,7 @@ draw_pixel:
 move_down:
     lw $t3, y_pos
     addi $t3, $t3, 1   # Increase y by 1 (move down)
-    li $t4, 63         # Max height (64 - 1)
+    li $t4, 63         
     ble $t3, $t4, update_y  # Ensure y does not exceed bounds
     li $t3, 63         # If exceeded, set to max
     j game_loop
@@ -116,9 +117,9 @@ update_x:
 move_right:
     lw $t3, x_pos
     addi $t3, $t3, 1   # Increase x by 1 (move right)
-    li $t4, 255         # Max width (64 - 1)
+    li $t4, 63         # Max width (64 - 1)
     ble $t3, $t4, update_x  # Ensure x does not exceed bounds
-    li $t3, 255         # If exceeded, set to max
+    li $t3, 63         # If exceeded, set to max
     j game_loop
 
 exit_game:
