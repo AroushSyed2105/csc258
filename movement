@@ -4,8 +4,13 @@ DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
 KEYBOARD_ADDR:  .word 0xffff0000  # Memory-mapped address for the keyboard
 
 # Initial pixel position (X=32, Y=32) (center of 64x64 screen)
-x_pos: .word 32  # Stores the x-coordinate of the pixel
+# .word used for allocating and initalizing variable
+# okay full honesty when i was first starting this yestersay i saw this crappy video
+# and people used variable for x_pos and y_pos just to make it easier when updating
+
+x_pos: .word 32  # Stores the x-coordinate of the pixel  
 y_pos: .word 32  # Stores the y-coordinate of the pixel
+# x_pos and y_pos ARE STARTING POSITIONS FOR OUR PIXEL
 prev_x_pos: .word 32  # Previous x-coordinate
 prev_y_pos: .word 32  # Previous y-coordinate
 
@@ -54,7 +59,7 @@ draw_pixel:
     add $t6, $t6, $t3     # add the offset to the base address SOOO we get the exact pixel address
 
     li $t7, 0x00          # black pixel... my prev bs reasoning on clearing board... obv change.. but for now yes
-    sb $t7, 0($t6)       
+    sb $t7, 0($t6) # storing black      
 
     # Update previous coordinates
     lw $t3, x_pos # load curr x pos into $t3
@@ -66,6 +71,7 @@ draw_pixel:
     ### okay you are going to see that this section is essentially the same as clear prev postion..
     ### THATS BECAUSE IN MY LOGIC I AM PAINTING A BLACK SQUARE ON THE PREV LOCATION
     #### WHEREAS HERE I AM PAINTING A WHITE SQUARE ON NEW LOCATION
+    
     lw $t5, SCREEN_WIDTH
     mul $t4, $t4, $t5 # calculating row offset (y * width)
     add $t4, $t4, $t3     # Final pixel index
