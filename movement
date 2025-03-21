@@ -1,0 +1,108 @@
+.data
+# Bitmap Display Base Address
+DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
+KEYBOARD_ADDR:  .word 0xffff0000  # Memory-mapped address for the keyboard
+
+# Initial pixel position (X=32, Y=32) (center of 64x64 screen)
+x_pos: .word 32  # Stores the x-coordinate of the pixel
+y_pos: .word 32  # Stores the y-coordinate of the pixel
+
+# Screen Width
+SCREEN_WIDTH: .word 64  # Screen width is 64 pixels
+
+.text
+main:
+    # Setup frame delay (60 FPS)
+    li $v0, 32         # System call for sleep
+    # li $a0, 16666      saw this online im not sure if its needed when settig upo FPS
+
+game_loop:
+    # Poll for key press
+    lw $t0, KEYBOARD_ADDR  # Load keyboard base address
+    lw $t1, 0($t0)         # Read if a key is pressed (1 if pressed, 0 if not)
+    beq $t1, $zero, draw_pixel # If no key press we just want t0 redraw screen 
+
+    lw $t2, 4($t0)         # Get ASCII code of key pressed
+
+    # Move pixel based on key press
+    beq $t2, 0x77, move_up    # 'w' (0x77 ASCII for w)
+    beq $t2, 0x61, move_left  # 'a' (0x61 ASCII for a)
+    beq $t2, 0x73, move_down  # 's' (0x73 ASCII for s)
+    beq $t2, 0x64, move_right # 'd' (0x64 ASCII for d)
+    beq $t2, 0x71, exit_game  # 'q' (0x71 ASCII for q)
+
+draw_pixel:
+    lw $t3, y_pos # Loads the current y-coordinate from memory (stored in y_pos) into $t3
+                  # we need to calculate the memory location of pixel
+    lw $t4, SCREEN_WIDTH # loads screen width from memomry 
+                        #  we need the width to compute the correct memory offset afte keyboard press
+    mul $t3, $t3, $t4  # Calculate y * SCREEN_WIDTH
+    lw $t5, x_pos   # loads the current x-coordinate from memory into $t5
+    add $t3, $t3, $t5  # Computes y * SCREEN_WIDTH + x, which i think gives the exact index of the pixel in memory
+
+    lw $t6, DISPLAY_ADDR #loads  base address of the display from memory into $t6.
+                         # needed because all pixel data is stored starting from this address.
+    add $t6, $t6, $t3  # computes the final memory address of the pixel by adding the offset to base address
+                       # needed so we can modify the correct memory location
+
+    li $t7, 0x00  # loading black pixel 
+                  # my thinking was we want to erase prev position before drawing new one and yah draw over it... idk might need to change
+                  
+    sb $t7, 0($t6) # Stores black pixel at the calculated pixel memory address (turns the previous pixel black??)
+                   # so we "erased" it..? yah idk
+
+    # Draw new position
+    lw $t3, y_pos # load current y position
+    lw $t4, SCREEN_WIDTH # load screen width
+    mul $t3, $t3, $t4 # computing row offset
+    lw $t5, x_pos # current x pos
+    add $t3, $t3, $t5  # final pixel index
+
+    lw $t6, DISPLAY_ADDR # getting base address
+    add $t6, $t6, $t3  # final new pixel memory address
+
+    li $t7, 0xFF  # White pixel
+    sb $t7, 0($t6) # Store in display memory
+
+    # Sleep (for 60 FPS frame delay)
+    syscall
+    j game_loop  # Loop back
+
+# Movement logic
+move_up:
+    lw $t3, y_pos      # Load current y position
+    subi $t3, $t3, 1   # Decrease y by 1 (move up)
+    bgez $t3, update_y # Ensure y does not go negative # bgez : Branch if Greater Than or Equal to Zero
+    li $t3, 0          # if negative, reset to 0
+update_y:
+    sw $t3, y_pos      # store updated y position
+    j game_loop         # go back to game loop
+
+move_down:
+    lw $t3, y_pos
+    addi $t3, $t3, 1   # Increase y by 1 (move down)
+    li $t4, 63         # Max height (64 - 1)..check
+    ble $t3, $t4, update_y  # Ensure y does not exceed bounds
+    li $t3, 63         # If yah, set to max
+    j game_loop
+
+move_left:
+    lw $t3, x_pos
+    subi $t3, $t3, 1   # Decrease x by 1 (move left)
+    bgez $t3, update_x # Ensure x does not go negative
+    li $t3, 0          # If negative, reset to 0
+update_x:
+    sw $t3, x_pos      # Store updated x position
+    j game_loop
+
+move_right:
+    lw $t3, x_pos
+    addi $t3, $t3, 1   # Increase x by 1 (move right)
+    li $t4, 63         # Max width (64 - 1)
+    ble $t3, $t4, update_x  # Ensure x does not exceed bounds
+    li $t3, 63         # If exceeded, set to max
+    j game_loop
+
+exit_game:
+    li $v0, 10  # Exit syscall (MIPS system call for exit)
+    syscall
