@@ -1,4 +1,4 @@
-    .data
+     .data
 ADDR_DSPL:
     .word 0x10008000
 
@@ -71,6 +71,7 @@ addi $t5, $t5, 120      # moving to inside neck of bottle
 # color left
 jal random              # gets a random number
 jal color               # uses the random number to generate a color
+add $a1, $zero, $t7     # stores color 1 in $a1
 # draw left side of pixel
 sw $t7, 0($t5)
 sw $t7, 4($t5)
@@ -79,15 +80,20 @@ sw $t7, 260($t5)
 # color 2
 jal random              # gets a random number
 jal color               # uses the random number to generate a color
-# move to right side of pixel
-addi $t5, $t5, 8   
+add $a2, $zero, $t7     # stores color 2 in $a2
 # draws right side of pixel
-sw $t7, 0($t5)
-sw $t7, 4($t5)
-sw $t7, 256($t5)
-sw $t7, 260($t5)          
+sw $t7, 8($t5)
+sw $t7, 12($t5)
+sw $t7, 264($t5)
+sw $t7, 268($t5)  
+# store pill location in $a0
+add $a0, $zero, $t5
 
 # Milestone 2: Movement #################################################################
+
+# $a0: top left corner
+# $a1: color 1
+# $a2: color 2
 
 
 
