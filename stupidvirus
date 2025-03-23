@@ -123,38 +123,38 @@ add $a0, $zero, $t5
 
 randomVirus:
     jal random              # Get random number in $a0
-    ble $a0, 5, map1         # If random <= 5, jump to map1
-    ble $a0, 10, map2        # If random <= 10, jump to map2
-    j map3                   # Otherwise, jump to map3
+    #ble $a0, 5, map1         # If random <= 5, jump to map1
+    #ble $a0, 10, map2        # If random <= 10, jump to map2
+    j map1                   # Otherwise, jump to map3
 
 map1:
     # Draw three fixed pixels for map1
-    addi $t5, $t0, 512      # Position 1
-    sw $t1, 0($t5)          # Red pixel
-    addi $t5, $t0, 1024     # Position 2
-    sw $t2, 0($t5)          # Green pixel
-    addi $t5, $t0, 1536     # Position 3
-    sw $t3, 0($t5)          # Yellow pixel
+    addi $t5, $t0, 5412      # Position 1
+    sw $t1, 36($t5)          # Red pixel
+    addi $t5, $t0, 8448     # Position 2
+    sw $t2, 100($t5)          # Green pixel
+    addi $t5, $t0, 6144     # Position 3
+    sw $t3, 1160($t5)          # Yellow pixel
     jr $ra
 
 map2:
     # Draw three fixed pixels for map2
-    addi $t5, $t0, 2048     # Position 1
-    sw $t1, 0($t5)          # Red pixel
+    addi $t5, $t0, 4848     # Position 1
+    sw $t1, 200($t5)          # Red pixel
     addi $t5, $t0, 2560     # Position 2
-    sw $t2, 0($t5)          # Green pixel
-    addi $t5, $t0, 3072     # Position 3
-    sw $t3, 0($t5)          # Yellow pixel
+    sw $t2, 4200($t5)          # Green pixel
+    addi $t5, $t0, 8072     # Position 3
+    sw $t3, 500($t5)          # Yellow pixel
     jr $ra
 
 map3:
     # Draw three fixed pixels for map3
     addi $t5, $t0, 3584     # Position 1
-    sw $t1, 0($t5)          # Red pixel
+    sw $t1, 2440($t5)          # Red pixel
     addi $t5, $t0, 4096     # Position 2
-    sw $t2, 0($t5)          # Green pixel
+    sw $t2, 3440($t5)          # Green pixel
     addi $t5, $t0, 4608     # Position 3
-    sw $t3, 0($t5)          # Yellow pixel
+    sw $t3, 6840($t5)          # Yellow pixel
     jr $ra
 
 
