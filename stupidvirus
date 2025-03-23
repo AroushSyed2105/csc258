@@ -123,38 +123,66 @@ add $a0, $zero, $t5
 
 randomVirus:
     jal random              # Get random number in $a0
-    #ble $a0, 5, map1         # If random <= 5, jump to map1
-    #ble $a0, 10, map2        # If random <= 10, jump to map2
+    ble $a0, 5, map1         # If random <= 5, jump to map1
+    ble $a0, 10, map2        # If random <= 10, jump to map2
     j map1                   # Otherwise, jump to map3
 
 map1:
     # Draw three fixed pixels for map1
     addi $t5, $t0, 5412      # Position 1
-    sw $t1, 36($t5)          # Red pixel
+    sw $t1, 44($t5) # red
+    sw $t1, 48($t5)
+    sw $t1, 300($t5)
+    sw $t1, 304($t5)  
     addi $t5, $t0, 8448     # Position 2
-    sw $t2, 100($t5)          # Green pixel
+    sw $t2, 144($t5) # green
+    sw $t2, 148($t5)
+    sw $t2, 400($t5)
+    sw $t2, 404($t5)
     addi $t5, $t0, 6144     # Position 3
-    sw $t3, 1160($t5)          # Yellow pixel
+    sw $t3, 3168($t5) # green
+    sw $t3, 3172($t5)
+    sw $t3, 3424($t5)
+    sw $t3, 3428($t5)
     jr $ra
 
 map2:
     # Draw three fixed pixels for map2
     addi $t5, $t0, 4848     # Position 1
-    sw $t1, 200($t5)          # Red pixel
+    sw $t1, 208($t5) # red
+    sw $t1, 212($t5)
+    sw $t1, 464($t5)
+    sw $t1, 468($t5)
     addi $t5, $t0, 2560     # Position 2
-    sw $t2, 4200($t5)          # Green pixel
+    sw $t2, 4208($t5) # green
+    sw $t2, 4212($t5)
+    sw $t2, 4464($t5)
+    sw $t2, 4468($t5)
     addi $t5, $t0, 8072     # Position 3
-    sw $t3, 500($t5)          # Yellow pixel
+    sw $t3, 508($t5) # green
+    sw $t3, 512($t5)
+    sw $t3, 764($t5)
+    sw $t3, 768($t5)
     jr $ra
 
 map3:
     # Draw three fixed pixels for map3
     addi $t5, $t0, 3584     # Position 1
     sw $t1, 2440($t5)          # Red pixel
+    sw $t1, 2448($t5) # red
+    sw $t1, 2452($t5)
+    sw $t1, 2704($t5)
+    sw $t1, 2708($t5)
     addi $t5, $t0, 4096     # Position 2
-    sw $t2, 3440($t5)          # Green pixel
-    addi $t5, $t0, 4608     # Position 3
-    sw $t3, 6840($t5)          # Yellow pixel
+    sw $t2, 3448($t5) # green
+    sw $t2, 3452($t5)
+    sw $t2, 3704($t5)
+    sw $t2, 3708($t5)
+    addi $t5, $t0, 4608     # Position 3   
+    sw $t3, 6848($t5) # green
+    sw $t3, 6852($t5)
+    sw $t3, 7104($t5)
+    sw $t3, 7108($t5)
     jr $ra
 
 
