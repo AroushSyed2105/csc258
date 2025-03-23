@@ -15,6 +15,27 @@ li $t4, 0x5F5F5F        # $t4 = grey
 
 # Milestone 1: draw a medicine bottle ######################################################
 
+j walls
+
+random:
+# random seed: stores a random value from 0-15 inclusive in $a0
+li $v0, 42
+li $a0, 0
+li $a1, 16
+syscall
+jr $ra
+
+color:
+# stores one of the 3 colors in $t7 depending on the random number stored in $a0
+li $t7, 0xFF5050            # store red in $t7
+ble $a0, 5, color_end       # if random <= 5 then keep red and jump to color_end
+li $t7, 0x50CC50            # store green in $t7 
+ble $a0, 10, color_end      # if random <= 10 then keep green and jump to color_end
+li $t7, 0xFFFF50            # store yellow in $t7, random > 10 by this point
+color_end:
+jr $ra
+
+walls:
 # left wall
 addi $t5, $t0, 3840     # moving down 5 rows      
 addi $t5, $t5, 52       # vert line start
@@ -98,25 +119,7 @@ add $a0, $zero, $t5
 
 
 # Functions #############################################################################
-j exit
 
-random:
-# random seed: stores a random value from 0-15 inclusive in $a0
-li $v0, 42
-li $a0, 0
-li $a1, 16
-syscall
-jr $ra
-
-color:
-# stores one of the 3 colors in $t7 depending on the random number stored in $a0
-li $t7, 0xFF5050            # store red in $t7
-ble $a0, 5, color_end       # if random <= 5 then keep red and jump to color_end
-li $t7, 0x50CC50            # store green in $t7 
-ble $a0, 10, color_end      # if random <= 10 then keep green and jump to color_end
-li $t7, 0xFFFF50            # store yellow in $t7, random > 10 by this point
-color_end:
-jr $ra
 
 randomVirus:
     jal random              # Get random number in $a0
