@@ -49,13 +49,14 @@ SCREEN_WIDTH: .word 64  # Screen width is 64 pixels
     set_map_2:
     li $t1, 2
     sw $t1, map
-
+    
     skip:
 
     # Setup frame delay (60 FPS)
     li $v0, 32         # System call for sleep
     # li $a0, 16666      saw this online im not sure if its needed when settig upo FPS
    
+
 j game_loop
 
 random:
@@ -113,7 +114,7 @@ walls:
 # left wall
     addi $t5, $t0, 3840     # moving down 5 rows      
     addi $t5, $t5, 52       # vert line start
-    addi $t6, $zero, 44     # vert line lenght
+    addi $t6, $zero, 45     # vert line lenght
     add $t7, $zero, $zero   # loop variable
     jal draw_vertical       # jump to vertical line drawing loop 
     # jal: keep current location in memory so when the loop terminates we can come back here
@@ -126,7 +127,7 @@ walls:
     jal draw_vertical       # jump to vertical line drawing loop
     
 #base
-    addi $t5, $t0, 15104    # move 30 rows down to base of bottle
+    addi $t5, $t0, 15360    # move 30 rows down to base of bottle
     addi $t5, $t5, 52       # move right to start of bottle
     addi $t6, $zero, 38     # $t6 = width of bottle
     add $t7, $zero, $zero   # reset loop variable
@@ -166,24 +167,24 @@ walls:
     li $t2, 0x00CC30        # $t2 = green
     li $t3, 0xFFCF00        # $t3 = yellow
     lw $t4, map
-    ble $t4, 1, draw_map1        # If random <= 5, jump to map1
-    ble $t4, 2, draw_map2       # If random <= 10, jump to map2
+    beq $t4, 1, draw_map1        # If random <= 5, jump to map1
+    beq $t4, 2, draw_map2       # If random <= 10, jump to map2
     j draw_map3                  # Otherwise, jump to map3
 
   draw_map1:
     # Draw three fixed pixels for map1
-    addi $t5, $t0, 5412      # Position 1
-    sw $t1, 44($t5) # red
-    sw $t1, 48($t5)
-    sw $t1, 300($t5)
-    sw $t1, 304($t5)  
-    addi $t5, $t0, 8448     # Position 2
-    sw $t2, 144($t5) # green
-    sw $t2, 148($t5)
-    sw $t2, 400($t5)
-    sw $t2, 404($t5)
+    addi $t5, $t0, 12856      # Position 1
+    sw $t1, 0($t5) # red
+    sw $t1, 4($t5)
+    sw $t1, 256($t5)
+    sw $t1, 260($t5)  
+    addi $t5, $t0, 14920     # Position 2
+    sw $t2, 0($t5)          # green
+    sw $t2, 4($t5)
+    sw $t2, 256($t5)
+    sw $t2, 260($t5)
     addi $t5, $t0, 6144     # Position 3
-    sw $t3, 3168($t5) # green
+    sw $t3, 3168($t5)       # yellow
     sw $t3, 3172($t5)
     sw $t3, 3424($t5)
     sw $t3, 3428($t5)
@@ -197,7 +198,7 @@ draw_map2:
     sw $t1, 464($t5)
     sw $t1, 468($t5)
     addi $t5, $t0, 2560     # Position 2
-    sw $t2, 4208($t5)       # green
+    sw $t2, 4208($t5)       # yellow
     sw $t2, 4212($t5)
     sw $t2, 4464($t5)
     sw $t2, 4468($t5)
@@ -216,7 +217,7 @@ draw_map3:
     sw $t1, 2704($t5)
     sw $t1, 2708($t5)
     addi $t5, $t0, 4096     # Position 2
-    sw $t2, 3448($t5)       # green
+    sw $t2, 3448($t5)       # yellow
     sw $t2, 3452($t5)
     sw $t2, 3704($t5)
     sw $t2, 3708($t5)
