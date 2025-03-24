@@ -40,13 +40,17 @@ SCREEN_WIDTH: .word 64  # Screen width is 64 pixels
     # Otherwise, map=3
     li $t1, 3
     sw $t1, map
+    j skip
     
     set_map_1:
     li $t1, 1
     sw $t1, map
+    j skip
     set_map_2:
     li $t1, 2
     sw $t1, map
+
+    skip:
 
     # Setup frame delay (60 FPS)
     li $v0, 32         # System call for sleep
@@ -162,8 +166,8 @@ walls:
     li $t2, 0x00CC30        # $t2 = green
     li $t3, 0xFFCF00        # $t3 = yellow
     lw $t4, map
-    ble $t4, 5, draw_map1        # If random <= 5, jump to map1
-    ble $t4, 10, draw_map2       # If random <= 10, jump to map2
+    ble $t4, 1, draw_map1        # If random <= 5, jump to map1
+    ble $t4, 2, draw_map2       # If random <= 10, jump to map2
     j draw_map3                  # Otherwise, jump to map3
 
   draw_map1:
