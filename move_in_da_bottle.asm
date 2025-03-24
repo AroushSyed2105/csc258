@@ -192,21 +192,21 @@ walls:
 
 draw_map2:
     # Draw three fixed pixels for map2
-    addi $t5, $t0, 4848     # Position 1
-    sw $t1, 208($t5)        # red
-    sw $t1, 212($t5)
-    sw $t1, 464($t5)
-    sw $t1, 468($t5)
-    addi $t5, $t0, 2560     # Position 2
-    sw $t2, 4208($t5)       # yellow
-    sw $t2, 4212($t5)
-    sw $t2, 4464($t5)
-    sw $t2, 4468($t5)
-    addi $t5, $t0, 8072     # Position 3
-    sw $t3, 508($t5)        # green
-    sw $t3, 512($t5)
-    sw $t3, 764($t5)
-    sw $t3, 768($t5)
+    addi $t5, $t0, 9848     # Position 1
+    sw $t1, 0($t5)        # red
+    sw $t1, 4($t5)
+    sw $t1, 256($t5)
+    sw $t1, 260($t5)
+    addi $t5, $t0, 8560     # Position 2
+    sw $t2, 320($t5)       # green
+    sw $t2, 324($t5)
+    sw $t2, 576($t5)
+    sw $t2, 580($t5)
+    addi $t5, $t0, 10072     # Position 3
+    sw $t3, 352($t5)        # yellow
+    sw $t3, 356($t5)
+    sw $t3, 608($t5)
+    sw $t3, 612($t5)
     j gameplay
 
 draw_map3:
