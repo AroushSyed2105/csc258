@@ -174,7 +174,7 @@ walls:
   draw_map1:
     # Draw three fixed pixels for map1
     addi $t5, $t0, 12856      # Position 1
-    sw $t1, 0($t5) # red
+    sw $t1, 0($t5)             # red
     sw $t1, 4($t5)
     sw $t1, 256($t5)
     sw $t1, 260($t5)  
@@ -217,12 +217,12 @@ draw_map3:
     sw $t1, 256($t5)
     sw $t1, 260($t5)
     addi $t5, $t0, 11968     # Position 2
-    sw $t2, 0($t5)       # yellow
+    sw $t2, 0($t5)       # green
     sw $t2, 4($t5)
     sw $t2, 256($t5)
     sw $t2, 260($t5)
     addi $t5, $t0, 9288     # Position 3   
-    sw $t3, 0($t5)       # green
+    sw $t3, 0($t5)       # yellow
     sw $t3, 4($t5)
     sw $t3, 256($t5)
     sw $t3, 260($t5)
