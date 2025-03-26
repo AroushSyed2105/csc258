@@ -82,83 +82,101 @@ game_loop:
 j walls     # skip line drawing methods
 
 draw_horizontal:
-# draw horizontal line
+# draw vertical line
 # parameters:
-# - $t5 start position
+# - $t1 row/y
+# - $t2 column/x
 # - $t6 length
-    sw $t4, 0($t5)                  # draw pixel at current location
+    li $t4, 0x5F5F5F    # $t4 = grey color
+    li $t7, 0           # $t7 = row counter
+    li $t5, 64          # $t5 = width
+    mul $t3, $t1, $t5   # calculating row offset (y * width)
+    add $t3, $t3, $t2   # final pixel index
+    sll $t3, $t3, 2     # shift left logically by 2 bits, which is equivalent to multiplying by 4
+    add $t3, $t3, $t0   # add to display address
+horiz_loop:
+    sw $t4, 0($t3)                  # draw grey pixel at current location
     addi $t7, $t7, 1                # increment loop variable
-    addi $t5, $t5, 4                # go to next pixel
-    beq $t7, $t6, draw_horiz_end    # if loop variable = line length then stop drawing
-    j draw_horizontal               # restart loop
-draw_horiz_end:         # stop drawing
+    addi $t3, $t3, 4                # go to next line
+    beq $t7, $t6, draw_horiz_end     # if loop variable = line length then stop drawing
+    j horiz_loop                     # restart loop
+draw_horiz_end:          # stop drawing
     jr $ra              # jump back to where we came from
+
     
 draw_vertical:
 # draw vertical line
 # parameters:
-# - $t5 start position
+# - $t1 row/y
+# - $t2 column/x
 # - $t6 length
-    sw $t4, 0($t5)                  # draw pixel at current location
+    li $t4, 0x5F5F5F    # $t4 = grey color
+    li $t7, 0           # $t7 = row counter
+    li $t5, 64          # $t5 = width
+    mul $t3, $t1, $t5   # calculating row offset (y * width)
+    add $t3, $t3, $t2   # final pixel index
+    sll $t3, $t3, 2     # shift left logically by 2 bits, which is equivalent to multiplying by 4
+    add $t3, $t3, $t0   # add to display address
+vert_loop:
+    sw $t4, 0($t3)                  # draw grey pixel at current location
     addi $t7, $t7, 1                # increment loop variable
-    addi $t5, $t5, 256              # go to next line
+    addi $t3, $t3, 256              # go to next line
     beq $t7, $t6, draw_vert_end     # if loop variable = line length then stop drawing
-    j draw_vertical                 # restart loop
+    j vert_loop                     # restart loop
 draw_vert_end:          # stop drawing
-    jr $ra                  # jump back to where we came from
+    jr $ra              # jump back to where we came from
     
 # draw walls ######################################################################################
 walls:
     lw $t0, DISPLAY_ADDR       # $t0 = base address for display
-    li $t4, 0x5F5F5F            # $t4 = grey
 # left wall
-    addi $t5, $t0, 3840     # moving down 5 rows      
-    addi $t5, $t5, 52       # vert line start
+    # $t1: y coordinate (row)
+    # $t2: x coordinate (column/cell index)
+    addi $t1, $zero, 15      # down 15 rows
+    #addi $t5, $t0, 3840     
+    # row index: 5*4=20
+    addi $t2, $zero, 13     # across 13 units
+    # addi $t5, $t5, 52 pixels = 14 units
     addi $t6, $zero, 45     # vert line lenght
-    add $t7, $zero, $zero   # loop variable
     jal draw_vertical       # jump to vertical line drawing loop 
     # jal: keep current location in memory so when the loop terminates we can come back here
     
 # right wall
-    addi $t5, $t0, 3840     # moving down 5 rows      
-    addi $t5, $t5, 200      # vert line start
+    addi $t1, $zero, 15     # moving down 5 rows      
+    addi $t2, $zero, 50      # vert line start
+    addi $t6, $zero, 45     # vert line lenght
     # vert line length didn't change so we don't touch it
-    add $t7, $zero, $zero   # reset loop variable
     jal draw_vertical       # jump to vertical line drawing loop
     
 #base
-    addi $t5, $t0, 15360    # move 30 rows down to base of bottle
-    addi $t5, $t5, 52       # move right to start of bottle
-    addi $t6, $zero, 38     # $t6 = width of bottle
-    add $t7, $zero, $zero   # reset loop variable
-    jal draw_horizontal
+    addi $t1, $zero, 60     # y coordinate
+    addi $t2, $zero, 13     # x coordinate
+    addi $t6, $zero, 38     # line length
+    jal draw_horizontal     # jump to horizontal line drawing loop
+
     
 # top horizontal left
-    addi $t5, $t0, 3840     # moving to 5 rows down from top    
-    addi $t5, $t5, 52       # line start
+    addi $t1, $zero, 15       # y   
+    addi $t2, $zero, 13       # x
     addi $t6, $zero, 13     # line length
-    add $t7, $zero, $zero   # loop variable
     jal draw_horizontal     # jump to horizontal line drawing loop 
     
 # top horizontal right
-    addi $t5, $t0, 3840     # moving to 5 rows down from top
-    addi $t5, $t5, 148      # line start
+    addi $t1, $zero, 15       # y   
+    addi $t2, $zero, 37       # x
     addi $t6, $zero, 13     # line length
-    add $t7, $zero, $zero   # loop variable
     jal draw_horizontal     # jump to horizontal line drawing loop 
-    
+
 # neck left
-    addi $t5, $t0, 2048     # moving to 1 row down from top
-    addi $t5, $t5, 104      # vert line start
+    addi $t1, $zero, 8        # moving to 5 rows down from top
+    addi $t2, $zero, 26      # vert line start
     addi $t6, $zero, 8      # vert line lenght
-    add $t7, $zero, $zero   # loop variable
     jal draw_vertical       # jump to vertical line drawing loop
     
 # neck right
-    addi $t5, $t0, 2048     # moving to 1 row down from top
-    addi $t5, $t5, 148      # vert line start
+    addi $t1, $zero, 8        # moving to 5 rows down from top
+    addi $t2, $zero, 37      # vert line start
     addi $t6, $zero, 8      # vert line lenght
-    add $t7, $zero, $zero   # loop variable
     jal draw_vertical       # jump to vertical line drawing loop
     
 # draw viruses ###########################################################################################
@@ -337,9 +355,10 @@ move_down:
     addi $t3, $t3, 2    # Increase y1 by 2 (move down)
     lw $t5, y2_pos
     addi $t5, $t5, 2    # Increase y2 by 2 (move down)
-    li $t4, 62         
+    
+    #li $t4, 62         
     ble $t3, $t4, update_y  # Ensure y does not exceed bounds
-    li $t3, 62          # If exceeded, set to max
+    #li $t3, 62          # If exceeded, set to max
     j game_loop
 
 update_y:
