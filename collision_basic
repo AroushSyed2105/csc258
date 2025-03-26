@@ -1,0 +1,79 @@
+.data
+screen_array: .space 16384  # Reserve memory for 64x64 pixels (each pixel is 4 bytes)
+wall_msg: .asciiz "Collision with wall detected!\n"
+
+.text
+.globl main
+
+main:
+############ Store a Red Pixel at (row=3, col=5) ############ 
+
+    li   $t0, 3        # row = 3
+    li   $t1, 5        # col = 5
+    li   $t2, 64       # WIDTH = 64 (number of columns)
+
+    # $t0 → stores row number
+    # $t1 → stores column number
+    # $t3 → stores computed index
+    # $t5 → stores final memory address of the pixel
+    # Now, you can read or write to this address.
+
+    # Compute index = (row * WIDTH) + col
+    mul  $t3, $t0, $t2 # row * 64
+    add  $t3, $t3, $t1 # row * 64 + col
+
+    # Compute byte offset = index * 4 (since each pixel takes 4 bytes)
+    sll  $t3, $t3, 2   
+
+    # Get memory address of pixel
+    la   $t4, screen_array # Load base address of screen array
+    add  $t5, $t4, $t3     # Address = base + offset
+
+    # To store a red pixel (0xFF0000) at computed address (row=3, col=5):
+    li   $t6, 0xFF0000 # Red color
+    sw   $t6, 0($t5)   # Store it in memory
+
+############ Load Pixel Color from (row=3, col=5) ############ 
+
+    # Load pixel color into $t6
+    lw   $t6, 0($t5)  # Now, $t6 contains the RGB color of the pixel.
+
+############  Check for Collision with Right Pixel (row, col+1) ############ 
+
+    # Move right (col + 1)
+    addi $t1, $t1, 1  
+
+    # Compute new index for (row, col+1)
+    mul  $t3, $t0, $t2 # row * WIDTH
+    add  $t3, $t3, $t1 # row * WIDTH + (col+1)
+
+    # Compute byte offset
+    sll  $t3, $t3, 2   
+
+    # Get memory address of right pixel
+    la   $t4, screen_array 
+    add  $t5, $t4, $t3 
+
+    # Load right pixel's color
+    lw   $t6, 0($t5)  
+
+    # Compare with black (0x000000) to detect collision
+    li   $t7, 0x000000  # Black color (wall)
+    beq  $t6, $t7, collision_detected  # If it's black, go to collision_detected
+
+    j no_collision  # Otherwise, continue without collision
+
+collision_detected:
+    # Print collision message
+    li   $v0, 4       # Print string syscall
+    la   $a0, wall_msg
+    syscall
+    j end
+
+no_collision:
+    # Normal movement (if needed, add movement code here)
+
+end:
+    # Exit program
+    li   $v0, 10
+    syscall
