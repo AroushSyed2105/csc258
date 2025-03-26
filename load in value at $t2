@@ -1,0 +1,11 @@
+.data
+# Bitmap Display Base Address
+DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
+.text
+
+lw $t0, DISPLAY_ADDR
+li $t1, 0xFF0000
+addi $t2, $t0, 2560
+sw $t1, 0($t2)
+
+lw $t3, 0($t2)
