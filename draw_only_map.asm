@@ -26,8 +26,10 @@ li $v0, 32      #frames per second or something
 
 # assign color1 & color2 & map
 jal random
+jal color
 sw $t7, col1
 jal random
+jal color
 sw $t7, col2
 
 
@@ -163,7 +165,6 @@ end_loop:
     jal map_horizontal       # Call horizontal line drawing function
     
 #left_wall
-    # li $t1, 15              # Y coordinate (row start)
     li $t1, 15                # Y coordinate (row start)
     li $t2, 13                # X coordinate (fixed column)
     li $t6, 45                # Number of pixels to draw (line height)
@@ -277,13 +278,15 @@ jal map_pill
 j game_loop
 
 map_pill:
+# clear old position
+    #load previous values
     lw $t0, prev_x1_pos
     lw $t1, prev_y1_pos
     li $t2, 0x00
     lw $t3, prev_x2_pos
     lw $t4, prev_y2_pos
-    la $t6, map         # Load base address of array into $t4
-    
+    la $t6, map     
+    # clear previous half-1
     mul $t7, $t1, 64    # Multiply Y * 64 (# of columns)
     add $t7, $t7, $t0   # Add X
     sll $t7, $t7, 2     # byte offset
@@ -292,7 +295,7 @@ map_pill:
     sw $t2, 4($t7)
     sw $t2, 256($t7)
     sw $t2, 260($t7)
-    
+    # clea previous half-2
     mul $t7, $t4, 64    # Multiply Y * 64 (# of columns)
     add $t7, $t7, $t3   # Add X
     sll $t7, $t7, 2     # byte offset
@@ -330,6 +333,7 @@ map_pill:
 jr $ra    
 
 ### GAME TIME BABY ######################################################################## 
+
 game_loop:
 
     lw $t0, KEYBOARD_ADDR  # Load keyboard base address
@@ -339,26 +343,34 @@ game_loop:
     lw $t2, 4($t0)         # Get ASCII code of key pressed
 
     # Move pixel based on key press
-    #beq $t2, 0x77, rotate      # 'w' (0x87 ASCII for w)
+    beq $t2, 0x77, rotate      # 'w' (0x87 ASCII for w)
     beq $t2, 0x61, move_left   # 'a' (0x61 ASCII for a)
     beq $t2, 0x73, move_down    # 's' (0x73 ASCII for s)
-    #beq $t2, 0x64, move_right  # 'd' (0x64 ASCII for d)
-    #beq $t2, 0x71, exit_game   # 'q' (0x71 ASCII for q)
+    beq $t2, 0x64, move_right  # 'd' (0x64 ASCII for d)
+    beq $t2, 0x71, exit_game   # 'q' (0x71 ASCII for q)
+    j draw_map
     
 move_down:
+    # update y1
     lw $t3, y1_pos
     sw $t3, prev_y1_pos
     addi $t3, $t3, 2    # Increase y1 by 2 (move down)
     sw $t3, y1_pos
-    
+    # update y2
     lw $t5, y2_pos
     sw $t5, prev_y2_pos
     addi $t5, $t5, 2    # Increase y2 by 2 (move down)
     sw $t5, y2_pos
+    # update prev_x1 and prev_x2
+    lw $t3, x1_pos
+    sw $t3, prev_x1_pos
+    lw $t5, x2_pos
+    sw $t5, prev_x2_pos
     
-    j map_pill
+    jal map_pill
     j draw_map
-    
+
+   
 move_left:
     lw $t3, x1_pos
     sw $t3, prev_x1_pos  # store current x in prev_x1
@@ -369,10 +381,139 @@ move_left:
     sw $t5, prev_x2_pos
     addi $t5, $t5, -2    # decrease x2 by 2 (move down)
     sw $t5, x2_pos
+    # update prev_x1 and prev_x2
+    lw $t3, y1_pos
+    sw $t3, prev_y1_pos
+    lw $t5, y2_pos
+    sw $t5, prev_y2_pos
     
-    j map_pill
+    jal map_pill
+    j draw_map
+ 
+    
+move_right:
+    lw $t3, x1_pos
+    sw $t3, prev_x1_pos  # store current x in prev_x1
+    addi $t3, $t3, 2    # decrease x1 by 2 (move down)
+    sw $t3, x1_pos       # store new x in x1_por
+    
+    lw $t5, x2_pos
+    sw $t5, prev_x2_pos
+    addi $t5, $t5, 2    # decrease x2 by 2 (move down)
+    sw $t5, x2_pos
+    # update prev_x1 and prev_x2
+    lw $t3, y1_pos
+    sw $t3, prev_y1_pos
+    lw $t5, y2_pos
+    sw $t5, prev_y2_pos
+    
+    jal map_pill
     j draw_map
 
+
+rotate:
+    # check current orientation
+    # move to next orientation
+    # - 0: 1 2      next: 1
+    #
+    # - 1: 1        next: 2
+    #      2
+    # - 2:          next: 3
+    #      2 1
+    # - 3:   2      next: 0
+    #        1
+    lw $t3, orientation 
+    beq $t3, 0, S0
+    beq $t3, 1, S1
+    beq $t3, 2, S2
+    beq $t3, 3, S3
+    
+    S0:
+    # x2 -= 2
+    lw $t8, x2_pos
+    sw $t8, prev_x2_pos
+    addi $t8, $t8, -2 
+    sw $t8, x2_pos
+    # y2 += 2
+    lw $t8, y2_pos
+    sw $t8, prev_y2_pos
+    addi $t8, $t8, 2 
+    sw $t8, y2_pos
+    # update prev x1,y1 to match current x1,y1
+    lw $t4, x1_pos
+    sw $t4, prev_x1_pos
+    lw $t5, y1_pos
+    sw $t5, prev_y1_pos
+    # load orientation=1
+    li $t3, 1
+    sw $t3, orientation
+    jal map_pill
+    j draw_map
+    
+    S1:
+    # x1 += 2
+    lw $t8, x1_pos
+    sw $t8, prev_x1_pos
+    addi $t8, $t8, 2 
+    sw $t8, x1_pos
+    # y1 += 2
+    lw $t8, y1_pos
+    sw $t8, prev_y1_pos
+    addi $t8, $t8, 2 
+    sw $t8, y1_pos
+    # update prev x2,y2 to match current x2,y2
+    lw $t3, x2_pos
+    sw $t3, prev_x2_pos
+    lw $t5, y2_pos
+    sw $t5, prev_y2_pos
+    # load orientation=2
+    li $t3, 2
+    sw $t3, orientation
+    jal map_pill
+    j draw_map
+    
+    S2:
+    # x2 += 2
+    lw $t8, x2_pos
+    sw $t8, prev_x2_pos
+    addi $t8, $t8, 2 
+    sw $t8, x2_pos
+    # y2 -= 2
+    lw $t8, y2_pos
+    sw $t8, prev_y2_pos
+    addi $t8, $t8, -2 
+    sw $t8, y2_pos
+    # update prev x1,y1 to match current x1,y1
+    lw $t4, x1_pos
+    sw $t4, prev_x1_pos
+    lw $t5, y1_pos
+    sw $t5, prev_y1_pos
+    # load orientation=3
+    li $t3, 3
+    sw $t3, orientation
+    jal map_pill
+    j draw_map
+    
+    S3:
+    # x1 -= 2
+    lw $t8, x1_pos
+    sw $t8, prev_x1_pos
+    addi $t8, $t8, -2 
+    sw $t8, x1_pos
+    # y1 -= 2
+    lw $t8, y1_pos
+    sw $t8, prev_y1_pos
+    addi $t8, $t8, -2 
+    sw $t8, y1_pos
+    # update prev x2,y2 to match current x2,y2
+    lw $t4, x2_pos
+    sw $t4, prev_x2_pos
+    lw $t5, y2_pos
+    sw $t5, prev_y2_pos
+    # load orientation=0
+    sw $zero, orientation
+    jal map_pill
+    j draw_map
     
 
 ### DRAWING #############################################################################
@@ -414,4 +555,7 @@ draw_map:
     syscall
     j game_loop
     
-end_draw:  
+
+exit_game:
+    li $v0, 10  # Exit syscall (MIPS system call for exit)
+    syscall
