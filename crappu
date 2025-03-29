@@ -1,0 +1,230 @@
+.data
+map: .space 6840  # Allocate space for 45 rows * 38 columns * 4 bytes per word (since each word is 4 bytes) = 6840bytes
+DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
+KEYBOARD_ADDR:  .word 0xffff0000  # Memory-mapped address for the keyboard
+
+x1_pos: .word 30        # Stores the x-coordinate of side 1 of pill  
+y1_pos: .word 12        # Stores the y-coordinate of side 1 of pill
+x2_pos: .word 32        # Stores the x-coordinate of side 2 of pill  
+y2_pos: .word 12        # Stores the y-coordinate of side 2 of pill
+orientation: .word 0    # Stores the orientation of the pill 
+# x_pos and y_pos ARE STARTING POSITIONS FOR OUR PIXEL
+prev_x1_pos: .word 30  # Previous x-coordinate
+prev_y1_pos: .word 0  # Previous y-coordinate
+prev_x2_pos: .word 32  
+prev_y2_pos: .word 12  
+# colors
+col1: .word 0           # designates memory to col1
+col2: .word 0           # designates memory to col2
+SCREEN_WIDTH: .word 64 
+
+
+.text
+.globl main
+    
+### STORING WHITE ############################################################
+
+main:
+    li $t0, 0           # Row counter (starting at 0)
+    li $t1, 0           # Column counter (starting at 0)
+    li $t2, 256          # Number of rows
+    li $t3, 256          # Number of columns 
+
+loop_rows:
+    bge $t0, $t2, end_loop  # If row counter >= 20, end loop
+
+    # Calculate base address for the current row
+    la $t4, map         # Load base address of array into $t4
+    mul $t5, $t0, $t3     # Multiply row index by number of columns
+    sll $t5, $t5, 2     # Multiply by 4 to get byte offset (each word is 4 bytes)
+    add $t6, $t4, $t5   # Add offset to base address for the current row
+
+    li $t1, 0           # Reset column counter
+
+loop_columns:
+    bge $t1, $t3, next_row  # If column counter >= 38, move to the next row
+
+    # Store a value in array[row][col]
+    li $t7, 0xFFFFFF      # Just an example value to store (could be computed)
+    sw $t7, 0($t6)        # Store value at the current row, column position
+
+    addi $t6, $t6, 4      # Move to the next column in the current row
+    addi $t1, $t1, 1      # Increment column counter
+    j loop_columns        # Continue looping through columns
+
+next_row:
+    addi $t0, $t0, 1      # Increment row counter
+    j loop_rows           # Continue looping through rows
+
+end_loop:
+
+### DRAWING #########################################################
+
+walls:
+    la $t4, map               # Load base address of the map
+    li $a0, 0x10008000        # Display memory base address
+    li $t7, 0xFFFFFF          # Color (white)
+
+#base
+    li $t1, 60                # Y coordinate (row)
+    li $t2, 13                # X coordinate (column start)
+    li $t6, 38                # Number of pixels to draw (line length)
+    jal draw_horizontal       # Call horizontal line drawing function
+#left_wall
+    # li $t1, 15              # Y coordinate (row start)
+    li $t1, 15                # Y coordinate (row start)
+    li $t2, 13                # X coordinate (fixed column)
+    li $t6, 45                # Number of pixels to draw (line height)
+    jal draw_vertical         # Call vertical line drawing function
+# right wall
+    li $t1, 15                # moving down 5 rows      
+    li $t2, 50                # vert line start
+    li $t6, 45                # vert line lenght
+    jal draw_vertical         # jump to vertical line drawing loop
+# top horizontal left
+    li $t1, 15                # y   
+    li $t2,13                 # x
+    li $t6, 13                # line length
+    jal draw_horizontal       # jump to horizontal line drawing loop 
+# top horizontal right
+    li $t1,15                 # y   
+    li $t2, 37                # x
+    li $t6, 13                # line length
+    jal draw_horizontal       # jump to horizontal line drawing loop 
+# neck left
+    li $t1, 8                 # moving to 5 rows down from top
+    li $t2, 26                # vert line start
+    li $t6, 8                 # vert line lenght
+    jal draw_vertical         # jump to vertical line drawing loop
+# neck right
+    li $t1, 8                 # moving to 5 rows down from top
+    li $t2, 37                # vert line start
+    li $t6, 8                 # vert line lenght
+    jal draw_vertical         # jump to vertical line drawing loop
+# bye bye
+    j end_draw                   # Exit after drawing
+
+### FUNCTIONS #########################################################
+draw_horizontal:
+    # Compute starting address for row t1
+    mul $t5, $t1, 64          # Multiply Y coordinate by total width
+    add $t5, $t5, $t2         # Add X coordinate (column start)
+    sll $t5, $t5, 2           # Multiply by 4 to get byte offset
+    add $t5, $t5, $a0         # Add base display address to get actual start position
+    li $t4, 0                 # Column counter
+
+loop_columns2:
+    bge $t4, $t6, end_hori    # Stop after drawing t6 pixels
+    sw $t7, 0($t5)            # Store color at current pixel
+    addi $t5, $t5, 4          # Move to next pixel (4 bytes ahead)
+    addi $t4, $t4, 1          # Increment column counter
+    j loop_columns2           # Continue loop
+    
+end_hori:
+    jr $ra                    # Return to caller
+
+draw_vertical:
+    # Compute starting address for row t1, column t2
+    mul $t5, $t1, 64          # Multiply Y coordinate by total width (256)
+    add $t5, $t5, $t2         # Add X coordinate (column)
+    sll $t5, $t5, 2           # Multiply by 4 to get byte offset
+    add $t5, $t5, $a0         # Add base display address to get actual start position
+    li $t4, 0                 # Row counter
+
+loop_rows2:
+    bge $t4, $t6, end_vert    # Stop after drawing t6 pixels
+    sw $t7, 0($t5)            # Store color at current pixel
+    addi $t5, $t5, 256        # Move to next row (256 * 4 bytes ahead)
+    addi $t4, $t4, 1          # Increment row counter
+    j loop_rows2              # Continue loop
+
+end_vert:
+    jr $ra                    # Return to caller
+
+end_draw:
+  
+draw_pixel:  
+    lw $t4, SCREEN_WIDTH                  # Load screen width
+
+    # Compute address for first previous pixel
+    lw $t3, prev_y1_pos          
+    mul $t3, $t3, $t4            # Row offset (y * width)
+    lw $t5, prev_x1_pos          
+    add $t3, $t3, $t5            # Final pixel index
+    sll $t3, $t3, 2              # Convert to byte offset
+
+    # Compute address for second previous pixel
+    lw $t8, prev_y2_pos          
+    mul $t8, $t8, $t4            
+    lw $t9, prev_x2_pos          
+    add $t8, $t8, $t9            
+    sll $t8, $t8, 2              # Convert to byte offset
+
+    # Erase previous pixel from display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t3             
+    li $t7, 0x00                 # Black pixel to erase old pixel
+    lb $t7, 0($t6)               
+
+    # Erase from map
+    la $t6, map                  
+    add $t6, $t6, $t3             
+    sw $t7, 0($t6)               
+
+    # Erase second previous pixel from display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)               
+
+    # Erase from map
+    la $t6, map                  
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)               
+
+    ###### Draw new pixel ######
+    
+    # Compute address for new pixel
+    lw $t3, y1_pos
+    mul $t3, $t3, $t4            
+    lw $t5, x1_pos
+    add $t3, $t3, $t5
+    sll $t3, $t3, 2              
+
+    lw $t8, y2_pos
+    mul $t8, $t8, $t4            
+    lw $t9, x2_pos
+    add $t8, $t8, $t9
+    sll $t8, $t8, 2              
+
+    # Draw pixel in display
+    lw $t6, DISPLAY_ADDR         
+    add $t6, $t6, $t3             
+    li $t7, 0xFF0000             # Example color (red)
+    sw $t7, 0($t6)               
+
+    # Write to map
+    la $t6, map                  
+    add $t6, $t6, $t3             
+    sw $t7, 0($t6)               
+
+    # Draw second pixel in display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)               
+
+    # Write to map
+    la $t6, map                  
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)               
+
+    jr $ra  
+
+
+
+
+
+
+    
+exit_game:
+    li $v0, 10  # Exit syscall (MIPS system call for exit)
+    syscall
