@@ -167,7 +167,7 @@ gameplay:
     beq $t2, 0x64, move_right # 'd' (0x64 ASCII for d)
     beq $t2, 0x71, exit_game  # 'q' (0x71 ASCII for q)
 
-draw_pixel:  
+draw_pixel2:  
     lw $t4, SCREEN_WIDTH                  # Load screen width
 
     # Compute address for first previous pixel
@@ -274,6 +274,85 @@ draw_pixel:
     sw $t2, 0($a1)
 
     syscall
+    j game_loop
+
+draw_pixel:  
+    lw $t4, SCREEN_WIDTH    # load screen width ( i have this incase we change display width again)
+    
+    lw $t3, prev_y1_pos     # loading prev y-coordinate
+    mul $t3, $t3, $t4       # calculating row offset (y * width)
+    lw $t5, prev_x1_pos     # loading in prev x-coordinate
+    add $t3, $t3, $t5       # final pixel index
+    sll $t3, $t3, 2         # shift left logically by 2 bits, which is equivalent to multiplying by 4
+
+                            
+    lw $t8, prev_y2_pos     # loading prev y-coordinate
+    mul $t8, $t8, $t4       # calculating row offset (y * width)
+    lw $t9, prev_x2_pos     # loading in prev x-coordinate
+    add $t8, $t8, $t9       # final pixel index
+    sll $t8, $t8, 2         #  shift left logically by 2 bits, which is equivalent to multiplying by 4
+                          
+
+    lw $t6, DISPLAY_ADDR  # Load display base address
+    add $t6, $t6, $t3     # add the offset to the base address SOOO we get the exact pixel address
+
+    li $t7, 0x00          # black pixel to erase old pixel
+    sw $t7, 0($t6)        # drawing black      
+    sw $t7, 4($t6)
+    sw $t7, 256($t6)
+    sw $t7, 260($t6)
+    
+    lw $t6, DISPLAY_ADDR  # Load display base address
+    add $t6, $t6, $t8
+    
+    sw $t7, 0($t6)        # drawing black      
+    sw $t7, 4($t6)
+    sw $t7, 256($t6)
+    sw $t7, 260($t6)
+
+
+    ###### Draw new pixel ######
+    
+    # Compute address for new pixel
+    lw $t4, SCREEN_WIDTH
+    lw $t3, y1_pos
+    sw $t3, prev_y1_pos
+    lw $t5, x1_pos
+    sw $t5, prev_x1_pos
+    lw $t8, y2_pos
+    sw $t8, prev_y2_pos
+    lw $t9, x2_pos
+    sw $t9, prev_x2_pos
+    
+    mul $t3, $t3, $t4            
+    add $t3, $t3, $t5
+    sll $t3, $t3, 2   
+    
+    mul $t8, $t8, $t4            
+    add $t8, $t8, $t9
+    sll $t8, $t8, 2              
+
+    # Draw pixel in display
+    lw $t6, DISPLAY_ADDR         
+    add $t6, $t6, $t3        
+    
+    li $t7, 0xFF0000             # Example color (red)
+    sw $t7, 0($t6) 
+    sw $t7, 4($t6)
+    sw $t7, 256($t6)
+    sw $t7, 260($t6)              
+    
+    # Draw second pixel in display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t8 
+
+    li $t7, 0x00ff00
+    sw $t7, 0($t6)  
+    sw $t7, 4($t6)
+    sw $t7, 256($t6)
+    sw $t7, 260($t6)              
+
+
     j game_loop
 
  # Movement logic
