@@ -1,16 +1,34 @@
-    .data
-map: .space 6840  # Allocate space for 45 rows * 38 columns * 4 bytes per word (since each word is 4 bytes) = 6840bytes
+.data
+map: .space 16384  # Allocate space for 45 rows * 38 columns * 4 bytes per word (since each word is 4 bytes) = 6840bytes
 DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
-    .text
-    .globl main
+KEYBOARD_ADDR:  .word 0xffff0000  # Memory-mapped address for the keyboard
+
+x1_pos: .word 30        # Stores the x-coordinate of side 1 of pill  
+y1_pos: .word 12        # Stores the y-coordinate of side 1 of pill
+x2_pos: .word 32        # Stores the x-coordinate of side 2 of pill  
+y2_pos: .word 12        # Stores the y-coordinate of side 2 of pill
+orientation: .word 0    # Stores the orientation of the pill 
+# x_pos and y_pos ARE STARTING POSITIONS FOR OUR PIXEL
+prev_x1_pos: .word 30  # Previous x-coordinate
+prev_y1_pos: .word 12  # Previous y-coordinate
+prev_x2_pos: .word 32  
+prev_y2_pos: .word 12  
+# colors
+col1: .word 0xff0000           # designates memory to col1
+col2: .word 0x00ff00    # designates memory to col2
+SCREEN_WIDTH: .word 64 
+
+
+.text
+.globl main
     
-### idk what title this gets... ############################################################
+###  ############################################################
 
 main:
     li $t0, 0           # Row counter (starting at 0)
     li $t1, 0           # Column counter (starting at 0)
-    li $t2, 256          # Number of rows
-    li $t3, 256          # Number of columns 
+    li $t2, 64          # Number of rows
+    li $t3, 64          # Number of columns 
 
 loop_rows:
     bge $t0, $t2, end_loop  # If row counter >= 20, end loop
@@ -27,7 +45,7 @@ loop_columns:
     bge $t1, $t3, next_row  # If column counter >= 38, move to the next row
 
     # Store a value in array[row][col]
-    li $t7, 0xFFFFFF      # Just an example value to store (could be computed)
+    li $t7, 0x0      # Just an example value to store (could be computed)
     sw $t7, 0($t6)        # Store value at the current row, column position
 
     addi $t6, $t6, 4      # Move to the next column in the current row
@@ -43,8 +61,7 @@ end_loop:
 ### DRAWING #########################################################
 
 walls:
-#initalizing
-    la $t0, map               # Load base address of the map
+    la $t4, map               # Load base address of the map
     li $a0, 0x10008000        # Display memory base address
     li $t7, 0xFFFFFF          # Color (white)
 
@@ -88,7 +105,6 @@ walls:
     j end_draw                   # Exit after drawing
 
 ### FUNCTIONS #########################################################
-
 draw_horizontal:
     # Compute starting address for row t1
     mul $t5, $t1, 64          # Multiply Y coordinate by total width
@@ -126,3 +142,107 @@ end_vert:
     jr $ra                    # Return to caller
 
 end_draw:
+  
+draw_pixel:  
+    li $t4, 64                   # Load screen width
+
+    # Compute address for first previous pixel
+    lw $t3, prev_y1_pos          
+    mul $t3, $t3, $t4            # Row offset (y * width)
+    lw $t5, prev_x1_pos          
+    add $t3, $t3, $t5            # Final pixel index
+    sll $t3, $t3, 2              # Convert to byte offset
+
+    # Compute address for second previous pixel
+    lw $t8, prev_y2_pos          
+    mul $t8, $t8, $t4            
+    lw $t9, prev_x2_pos          
+    add $t8, $t8, $t9            
+    sll $t8, $t8, 2              # Convert to byte offset
+
+    # Erase previous pixel from display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t3             
+    li $t7, 0x00                 # Black pixel to erase old pixel
+    sw $t7, 0($t6)               
+
+    # Erase from map
+    la $t6, map                  
+    add $t6, $t6, $t3             
+    sw $t7, 0($t6)               
+
+    # Erase second previous pixel from display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)               
+
+    # Erase from map
+    la $t6, map                  
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)               
+
+    ###### Draw new pixel ######
+    
+    # Compute address for new pixel
+    lw $t3, y1_pos
+    mul $t3, $t3, $t4            
+    lw $t5, x1_pos
+    add $t3, $t3, $t5
+    sll $t3, $t3, 2              
+
+    lw $t8, y2_pos
+    mul $t8, $t8, $t4            
+    lw $t9, x2_pos
+    add $t8, $t8, $t9
+    sll $t8, $t8, 2              
+
+    # Draw pixel in display
+    lw $t6, DISPLAY_ADDR         
+    add $t6, $t6, $t3             
+    li $t7, 0xFF0000             # Example color (red)
+    sw $t7, 0($t6) sw $t7, 4($t6)
+    sw $t7, 256($t6)
+    sw $t7, 260($t6)               
+
+    # Write to map
+    la $t6, map                  
+    add $t6, $t6, $t3             
+    sw $t7, 0($t6) 
+    
+    # Draw second pixel in display
+    lw $t6, DISPLAY_ADDR          
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)  
+    sw $t7, 4($t6)
+    sw $t7, 256($t6)
+    sw $t7, 260($t6)              
+
+    # Write to map
+    la $t6, map                  
+    add $t6, $t6, $t8             
+    sw $t7, 0($t6)
+   
+
+    li $v0, 10
+    syscall
+    j exit_game
+
+    
+exit_game:
+    li $v0, 10  # Exit syscall (MIPS system call for exit)
+    syscall
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
