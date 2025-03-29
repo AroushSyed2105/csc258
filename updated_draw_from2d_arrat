@@ -4,7 +4,7 @@ DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
     .text
     .globl main
     
-### STORING WHITE ############################################################
+### idk what title this gets... ############################################################
 
 main:
     li $t0, 0           # Row counter (starting at 0)
@@ -43,6 +43,7 @@ end_loop:
 ### DRAWING #########################################################
 
 walls:
+#initalizing
     la $t0, map               # Load base address of the map
     li $a0, 0x10008000        # Display memory base address
     li $t7, 0xFFFFFF          # Color (white)
@@ -87,6 +88,7 @@ walls:
     j end_draw                   # Exit after drawing
 
 ### FUNCTIONS #########################################################
+
 draw_horizontal:
     # Compute starting address for row t1
     mul $t5, $t1, 64          # Multiply Y coordinate by total width
