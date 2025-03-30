@@ -675,7 +675,15 @@ rotate:
 ### CHECK STATIC ##########################################################################
 
 check_static:
-    check_horiz_down:     # horizontal and moving down
+# load y1 and y2
+    lw $t4, y1_pos
+    lw $t6, y2_pos
+# check orientation and split to check next row accordingly 
+    beq $t4, $t6, check_horiz_down
+    blt $t6, $t4, check_side_1_down  # 0 is at the top so if side2 has smaller Y than side1 then side2 is closer to top
+    j check_side_2_down  # else side 2 is down
+
+check_horiz_down:     # horizontal and moving down
     addi $t8, $t8, 512  # move 2 lines down so we're under the pill ($t8: under side 1, $t9: under side 2)
     addi $t9, $t9, 512  # because if we move 1 line down we're still inside the pill and we move nowhere
     lw $t1, 0($t8)      # see what's under side 1, store it in $t1
@@ -686,10 +694,48 @@ check_static:
 # otherwise there's space to move
     j not_static
     
+check_side_1_down:
+    addi $t8, $t8, 512  # move 2 lines down
+    lw $t1, 0($t8)      # see what's under side 1, store it in $t1
+    li $t7, 0x00        # black
+    bne $t1, $t7, is_static  # if there's something there we don't move, just draw the map as is
+# else there's space
+    j not_static
+
+check_side_2_down:
+    addi $t9, $t9, 512  # same shit
+    lw $t2, 0($t9)
+    li $t7, 0x00
+    bne $t2, $t7, is_static
+# else there's space
+    j not_static
+    
 is_static:
     li $t0, 1
     sw $t0, static
-    jr $ra
+    # assign new colors to col1 and col2
+    jal random
+    jal color
+    sw $t7, col1
+    jal random
+    jal color
+    sw $t7, col2
+    # reset x1, y1, x2, y2, prev values
+    li $t7, 30
+    sw $t7, x1_pos
+    sw $t7, prev_x1_pos
+    li $t7, 32
+    sw $t7, x2_pos
+    sw $t7, prev_x1_pos
+    li $t7, 12
+    sw $t7, y1_pos
+    sw $t7, y2_pos
+    sw $t7, prev_y1_pos
+    sw $t7, prev_y2_pos
+    sw $zero, orientation
+    jal map_pill
+    j draw_map
+
 
 not_static:
     jr $ra
