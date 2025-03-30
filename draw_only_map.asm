@@ -369,18 +369,38 @@ move_down:
     add $t9, $t9, $t0   # add to map address
 # check orientation and split to check next row accordingly 
     beq $t4, $t6, horiz_down
-    blt $t6, $t4, side_2_down 
-    #j side_3_down # else side 1 down
+    blt $t6, $t4, side_1_down  # 0 is at the top so if side2 has smaller Y than side1 then side2 is closer to top
+    j side_2_down  # else side 2 is down
     
-horiz_down:
-    addi $t8, $t8, 512
-    addi $t9, $t9, 512
-    lw $t1, 0($t8)
+horiz_down:     # horizontal and moving down
+    addi $t8, $t8, 512  # move 2 lines down so we're under the pill ($t8: under side 1, $t9: under side 2)
+    addi $t9, $t9, 512  # because if we move 1 line down we're still inside the pill and we move nowhere
+    lw $t1, 0($t8)      # see what's under side 1, store it in $t1
+    lw $t2, 0($t9)      # see what's under side 2, store it in $t2
+    li $t7, 0x00        # black
+    bne $t1, $t7, draw_map      # if what's under side 1 is not black, we can't move down, so jump to draw_map
+    bne $t2, $t7, draw_map      # if what's under side 2 is not black, we can't move down, so jump to draw_map
+# otherwise there's space to move
+    j actually_move_down
+
+side_1_down:    # pill is vertical and side 1 is under side 2
+    addi $t8, $t8, 512  # move 2 lines down
+    lw $t1, 0($t8)      # see what's under side 1, store it in $t1
+    li $t7, 0x00        # black
+    bne $t1, $t7, draw_map  # if there's something there we don't move, just draw the map as is
+# else there's space
+    j actually_move_down
+    
+side_2_down:     # pill is vertical and side 2 is under side 1
+    addi $t9, $t9, 512  # same shit
     lw $t2, 0($t9)
     li $t7, 0x00
-    bne $t1, $t7, draw_map
     bne $t2, $t7, draw_map
 # else there's space
+    j actually_move_down
+
+
+actually_move_down:
 # update y1
     sw $t4, prev_y1_pos
     addi $t4, $t4, 2    # Increase y1 by 2 (move down)
@@ -392,11 +412,9 @@ horiz_down:
 # update prev_x1 and prev_x2
     sw $t3, prev_x1_pos
     sw $t5, prev_x2_pos
-    
+# go draw now
     jal map_pill
     j draw_map
-
-side_2_down:
     
 
    
