@@ -17,6 +17,7 @@ prev_y2_pos: .word 12
 col1: .word 0xff0000           # designates memory to col1
 col2: .word 0x00ff00    # designates memory to col2
 virusmap: .word 0
+static: .word 0
 SCREEN_WIDTH: .word 64 
 
 
@@ -349,7 +350,8 @@ game_loop:
     beq $t2, 0x64, move_right  # 'd' (0x64 ASCII for d)
     beq $t2, 0x71, exit_game   # 'q' (0x71 ASCII for q)
     j draw_map
-    
+
+# DOWN
 move_down:
 #load coordinates+other info
     la $t0, map
@@ -399,7 +401,6 @@ side_2_down:     # pill is vertical and side 2 is under side 1
 # else there's space
     j actually_move_down
 
-
 actually_move_down:
 # update y1
     sw $t4, prev_y1_pos
@@ -414,11 +415,10 @@ actually_move_down:
     sw $t5, prev_x2_pos
 # go draw now
     jal map_pill
+    jal check_static
     j draw_map
     
 
-   
-  
 # LEFT 
 move_left:
 #load coordinates+other info
@@ -487,7 +487,7 @@ actually_move_left:
     jal map_pill
     j draw_map
  
-# RIGHT 
+# LEFT 
 move_right:
 #load coordinates+other info
     la $t0, map
@@ -555,7 +555,6 @@ actually_move_right:
     j draw_map
 
 
-
 rotate:
 #load coordinates+other info
     la $t0, map
@@ -580,34 +579,30 @@ rotate:
     beq $t2, 1, S1
     beq $t2, 2, S2
     beq $t2, 3, S3
-
+    
     S0:
-    # x2 -= 2
     addi $t9, $t9, 512
     addi $t9, $t9, -8
     lw $t2, 0($t9)
     bne $t2, $t7, draw_map
-    
+    # x2 -= 2
     sw $t5, prev_x2_pos
     addi $t5, $t5, -2 
     sw $t5, x2_pos
     # y2 += 2
-
     sw $t6, prev_y2_pos
     addi $t6, $t6, 2 
     sw $t6, y2_pos
     # update prev x1,y1 to match current x1,y1
-
     sw $t3, prev_x1_pos
     sw $t4, prev_y1_pos
-    
     # load orientation=1
     li $t2, 1
     sw $t2, orientation
     jal map_pill
     j draw_map
     
-    
+       
     S1:
     addi $t8, $t8, 512      # go down 2 rows from side 1 (y+=2)
     addi $t8, $t8, 8       # go 8 pixels right (x+=2)
@@ -676,9 +671,30 @@ rotate:
     sw $zero, orientation
     jal map_pill
     j draw_map
-    
 
-### DRAWING #############################################################################
+### CHECK STATIC ##########################################################################
+
+check_static:
+    check_horiz_down:     # horizontal and moving down
+    addi $t8, $t8, 512  # move 2 lines down so we're under the pill ($t8: under side 1, $t9: under side 2)
+    addi $t9, $t9, 512  # because if we move 1 line down we're still inside the pill and we move nowhere
+    lw $t1, 0($t8)      # see what's under side 1, store it in $t1
+    lw $t2, 0($t9)      # see what's under side 2, store it in $t2
+    li $t7, 0x00        # black
+    bne $t1, $t7, is_static      # if what's under side 1 is not black, we can't move down, so it's static
+    bne $t2, $t7, is_static      # if what's under side 2 is not black, we can't move down, so it's static
+# otherwise there's space to move
+    j not_static
+    
+is_static:
+    li $t0, 1
+    sw $t0, static
+    jr $ra
+
+not_static:
+    jr $ra
+
+### DRAWING ###############################################################################
 draw_map:
     li $t0, 0           # Row counter (starting at 0)
     li $t1, 0           # Column counter (starting at 0)
