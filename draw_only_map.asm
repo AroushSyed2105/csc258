@@ -580,10 +580,14 @@ rotate:
     beq $t2, 1, S1
     beq $t2, 2, S2
     beq $t2, 3, S3
-    
+
     S0:
     # x2 -= 2
-
+    addi $t9, $t9, 512
+    addi $t9, $t9, -8
+    lw $t2, 0($t9)
+    bne $t2, $t7, draw_map
+    
     sw $t5, prev_x2_pos
     addi $t5, $t5, -2 
     sw $t5, x2_pos
@@ -595,14 +599,13 @@ rotate:
     # update prev x1,y1 to match current x1,y1
 
     sw $t3, prev_x1_pos
-
     sw $t4, prev_y1_pos
+    
     # load orientation=1
     li $t2, 1
     sw $t2, orientation
     jal map_pill
     j draw_map
-    
     
     
     S1:
