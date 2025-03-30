@@ -487,7 +487,7 @@ actually_move_left:
     jal map_pill
     j draw_map
  
-# LEFT 
+# RIGHT 
 move_right:
 #load coordinates+other info
     la $t0, map
@@ -557,63 +557,73 @@ actually_move_right:
 
 
 rotate:
-    # check current orientation
-    # move to next orientation
-    # - 0: 1 2      next: 1
-    #
-    # - 1: 1        next: 2
-    #      2
-    # - 2:          next: 3
-    #      2 1
-    # - 3:   2      next: 0
-    #        1
-    lw $t3, orientation 
-    beq $t3, 0, S0
-    beq $t3, 1, S1
-    beq $t3, 2, S2
-    beq $t3, 3, S3
+#load coordinates+other info
+    la $t0, map
+    lw $t3, x1_pos
+    lw $t4, y1_pos
+    lw $t5, x2_pos
+    lw $t6, y2_pos
+    li $t7, 0x00
+# current position 1: $t8
+    mul $t8, $t4, 64    # Multiply Y * 64 (# of columns)
+    add $t8, $t8, $t3   # Add X
+    mul $t8, $t8, 4     # byte offset
+    add $t8, $t8, $t0   # add to map address
+# current position 2: $t9
+    mul $t9, $t6, 64    # Multiply Y * 64 (# of columns)
+    add $t9, $t9, $t5   # Add X
+    sll $t9, $t9, 2     # byte offset
+    add $t9, $t9, $t0   # add to map address
+    
+    lw $t2, orientation 
+    beq $t2, 0, S0
+    beq $t2, 1, S1
+    beq $t2, 2, S2
+    beq $t2, 3, S3
     
     S0:
     # x2 -= 2
-    lw $t8, x2_pos
-    sw $t8, prev_x2_pos
-    addi $t8, $t8, -2 
-    sw $t8, x2_pos
+
+    sw $t5, prev_x2_pos
+    addi $t5, $t5, -2 
+    sw $t5, x2_pos
     # y2 += 2
-    lw $t8, y2_pos
-    sw $t8, prev_y2_pos
-    addi $t8, $t8, 2 
-    sw $t8, y2_pos
+
+    sw $t6, prev_y2_pos
+    addi $t6, $t6, 2 
+    sw $t6, y2_pos
     # update prev x1,y1 to match current x1,y1
-    lw $t4, x1_pos
-    sw $t4, prev_x1_pos
-    lw $t5, y1_pos
-    sw $t5, prev_y1_pos
+
+    sw $t3, prev_x1_pos
+
+    sw $t4, prev_y1_pos
     # load orientation=1
-    li $t3, 1
-    sw $t3, orientation
+    li $t2, 1
+    sw $t2, orientation
     jal map_pill
     j draw_map
     
+    
+    
     S1:
+    addi $t8, $t8, 512      # go down 2 rows from side 1 (y+=2)
+    addi $t8, $t8, 8       # go 8 pixels right (x+=2)
+    lw $t1, 0($t8)
+    bne $t1, $t7, draw_map  # if the moving pixel's new location is occupied, don't do anything and go straight to drawing the map as is
     # x1 += 2
-    lw $t8, x1_pos
-    sw $t8, prev_x1_pos
-    addi $t8, $t8, 2 
-    sw $t8, x1_pos
+    sw $t3, prev_x1_pos
+    addi $t3, $t3, 2 
+    sw $t3, x1_pos
     # y1 += 2
-    lw $t8, y1_pos
-    sw $t8, prev_y1_pos
-    addi $t8, $t8, 2 
-    sw $t8, y1_pos
+    sw $t4, prev_y1_pos
+    addi $t4, $t4, 2 
+    sw $t4, y1_pos
     # update prev x2,y2 to match current x2,y2
-    lw $t3, x2_pos
-    sw $t3, prev_x2_pos
-    lw $t5, y2_pos
-    sw $t5, prev_y2_pos
+    sw $t5, prev_x2_pos
+    sw $t6, prev_y2_pos
     # load orientation=2
-    li $t3, 2
-    sw $t3, orientation
+    li $t2, 2
+    sw $t2, orientation
     jal map_pill
     j draw_map
     
@@ -634,8 +644,8 @@ rotate:
     lw $t5, y1_pos
     sw $t5, prev_y1_pos
     # load orientation=3
-    li $t3, 3
-    sw $t3, orientation
+    li $t2, 3
+    sw $t2, orientation
     jal map_pill
     j draw_map
     
