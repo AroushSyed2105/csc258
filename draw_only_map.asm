@@ -178,7 +178,7 @@ end_loop:
 # top horizontal left
     li $t1, 15                # y   
     li $t2,13                 # x
-    li $t6, 13                # line length
+    li $t6, 14                # line length
     jal map_horizontal       # jump to horizontal line drawing loop 
 # top horizontal right
     li $t1,15                 # y   
@@ -187,12 +187,12 @@ end_loop:
     jal map_horizontal       # jump to horizontal line drawing loop 
 # neck left
     li $t1, 8                 # moving to 5 rows down from top
-    li $t2, 26                # vert line start
+    li $t2, 27                # vert line start
     li $t6, 8                 # vert line lenght
     jal map_vertical         # jump to vertical line drawing loop
 # neck right
     li $t1, 8                 # moving to 5 rows down from top
-    li $t2, 37                # vert line start
+    li $t2, 36                # vert line start
     li $t6, 8                 # vert line lenght
     jal map_vertical         # jump to vertical line drawing loop
     
