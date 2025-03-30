@@ -351,24 +351,53 @@ game_loop:
     j draw_map
     
 move_down:
-    # update y1
-    lw $t3, y1_pos
-    sw $t3, prev_y1_pos
-    addi $t3, $t3, 2    # Increase y1 by 2 (move down)
-    sw $t3, y1_pos
-    # update y2
-    lw $t5, y2_pos
-    sw $t5, prev_y2_pos
-    addi $t5, $t5, 2    # Increase y2 by 2 (move down)
-    sw $t5, y2_pos
-    # update prev_x1 and prev_x2
+#load coordinates+other info
+    la $t0, map
     lw $t3, x1_pos
-    sw $t3, prev_x1_pos
+    lw $t4, y1_pos
     lw $t5, x2_pos
+    lw $t6, y2_pos
+# current position 1: $t8
+    mul $t8, $t4, 64    # Multiply Y * 64 (# of columns)
+    add $t8, $t8, $t3   # Add X
+    mul $t8, $t8, 4     # byte offset
+    add $t8, $t8, $t0   # add to map address
+# current position 2: $t9
+    mul $t9, $t6, 64    # Multiply Y * 64 (# of columns)
+    add $t9, $t9, $t5   # Add X
+    sll $t9, $t9, 2     # byte offset
+    add $t9, $t9, $t0   # add to map address
+# check orientation and split to check next row accordingly 
+    beq $t4, $t6, horiz_down
+    blt $t6, $t4, side_2_down 
+    #j side_3_down # else side 1 down
+    
+horiz_down:
+    addi $t8, $t8, 512
+    addi $t9, $t9, 512
+    lw $t1, 0($t8)
+    lw $t2, 0($t9)
+    li $t7, 0x00
+    bne $t1, $t7, draw_map
+    bne $t2, $t7, draw_map
+# else there's space
+# update y1
+    sw $t4, prev_y1_pos
+    addi $t4, $t4, 2    # Increase y1 by 2 (move down)
+    sw $t4, y1_pos
+# update y2
+    sw $t6, prev_y2_pos
+    addi $t6, $t6, 2    # Increase y2 by 2 (move down)
+    sw $t6, y2_pos
+# update prev_x1 and prev_x2
+    sw $t3, prev_x1_pos
     sw $t5, prev_x2_pos
     
     jal map_pill
     j draw_map
+
+side_2_down:
+    
 
    
 move_left:
