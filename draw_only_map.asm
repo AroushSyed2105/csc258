@@ -654,7 +654,7 @@ rotate:
     
     S3:
     addi $t8, $t8, -512      # go down 2 rows from side 1 (y+=2)
-    addi $t8, $t8, -8       # go 8 pixels right (x+=2)
+    addi $t8, $t8, -4       # go 8 pixels right (x+=2)
     lw $t1, 0($t8)
     bne $t1, $t7, draw_map  # if the moving pixel's new location is occupied, don't do anything and go straight to drawing the map as is
     # x1 -= 2
