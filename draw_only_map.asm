@@ -418,14 +418,64 @@ actually_move_down:
     
 
    
+  
+# LEFT 
 move_left:
+#load coordinates+other info
+    la $t0, map
     lw $t3, x1_pos
+    lw $t4, y1_pos
+    lw $t5, x2_pos
+    lw $t6, y2_pos
+# current position 1: $t8
+    mul $t8, $t4, 64    # Multiply Y * 64 (# of columns)
+    add $t8, $t8, $t3   # Add X
+    mul $t8, $t8, 4     # byte offset
+    add $t8, $t8, $t0   # add to map address
+# current position 2: $t9
+    mul $t9, $t6, 64    # Multiply Y * 64 (# of columns)
+    add $t9, $t9, $t5   # Add X
+    sll $t9, $t9, 2     # byte offset
+    add $t9, $t9, $t0   # add to map address
+# check orientation and split to check next row accordingly 
+    beq $t3, $t5, vert_LEFT_side
+    blt $t3, $t5, side_1_left  # 0 is at the top so if side2 has smaller Y than side1 then side2 is closer to top
+    j side_2_left  # else side 2 is down
+
+vert_LEFT_side:     # pill is vertical so we don't care which is up, we need to check what's left of both sides anyway
+    addi $t8, $t8, -4  # move 1 unit left down so we're left of the pill ($t8: left of side 1, $t9: left of side 2)
+    addi $t9, $t9, -4  
+    lw $t1, 0($t8)      # see what's beside side 1, store it in $t1
+    lw $t2, 0($t9)      # see what's beside side 2, store it in $t2
+    li $t7, 0x00        # black
+    bne $t1, $t7, draw_map      # if what's beside side 1 is not black, we can't move down, so jump to draw_map
+    bne $t2, $t7, draw_map      # if what's beside side 2 is not black, we can't move down, so jump to draw_map
+# otherwise there's space to move
+    j actually_move_left
+
+side_1_left:    # pill is horizontal and side 1 is left of side 2
+    addi $t8, $t8, -4  # move 2 lines down
+    lw $t1, 0($t8)      # see what's under side 1, store it in $t1
+    li $t7, 0x00        # black
+    bne $t1, $t7, draw_map  # if there's something there we don't move, just draw the map as is
+# else there's space
+    j actually_move_left
+
+side_2_left:     # pill is horizontal and side 2 is left of side 1
+    addi $t9, $t9, -4  # same shit
+    lw $t2, 0($t9)
+    li $t7, 0x00
+    bne $t2, $t7, draw_map
+# else there's space
+    j actually_move_left
+
+
+actually_move_left:
     sw $t3, prev_x1_pos  # store current x in prev_x1
     addi $t3, $t3, -2    # decrease x1 by 2 (move down)
     sw $t3, x1_pos       # store new x in x1_por
     
-    lw $t5, x2_pos
-    sw $t5, prev_x2_pos
+    sw $t5, prev_x2_pos     
     addi $t5, $t5, -2    # decrease x2 by 2 (move down)
     sw $t5, x2_pos
     # update prev_x1 and prev_x2
@@ -437,14 +487,61 @@ move_left:
     jal map_pill
     j draw_map
  
-    
+# LEFT 
 move_right:
+#load coordinates+other info
+    la $t0, map
     lw $t3, x1_pos
+    lw $t4, y1_pos
+    lw $t5, x2_pos
+    lw $t6, y2_pos
+# current position 1: $t8
+    mul $t8, $t4, 64    # Multiply Y * 64 (# of columns)
+    add $t8, $t8, $t3   # Add X
+    mul $t8, $t8, 4     # byte offset
+    add $t8, $t8, $t0   # add to map address
+# current position 2: $t9
+    mul $t9, $t6, 64    # Multiply Y * 64 (# of columns)
+    add $t9, $t9, $t5   # Add X
+    sll $t9, $t9, 2     # byte offset
+    add $t9, $t9, $t0   # add to map address
+# check orientation and split to check next row accordingly 
+    beq $t3, $t5, vert_RIGHT_side
+    blt $t3, $t5, side_1_right  # 0 is at the top so if side2 has smaller Y than side1 then side2 is closer to top
+    j side_2_right  # else side 2 is down
+
+vert_RIGHT_side:        # pill is vertical so we don't care which is up, we need to check what's left of both sides anyway
+    addi $t8, $t8, 8    # move 2 units right so we're right of the pill ($t8: right of side 1, $t9: right of side 2)
+    addi $t9, $t9, 8  
+    lw $t1, 0($t8)      # see what's beside side 1, store it in $t1
+    lw $t2, 0($t9)      # see what's beside side 2, store it in $t2
+    li $t7, 0x00        # black
+    bne $t1, $t7, draw_map      # if what's beside side 1 is not black, we can't move down, so jump to draw_map
+    bne $t2, $t7, draw_map      # if what's beside side 2 is not black, we can't move down, so jump to draw_map
+# otherwise there's space to move
+    j actually_move_right
+
+side_1_right:    # pill is horizontal and side 1 is right of side 2
+    addi $t9, $t9, 8  # same shit
+    lw $t2, 0($t9)
+    li $t7, 0x00
+    bne $t2, $t7, draw_map
+# else there's space
+    j actually_move_right
+
+side_2_right:     # pill is horizontal and side 2 is right of side 1
+    addi $t8, $t8, 8  # move 2 lines down
+    lw $t1, 0($t8)      # see what's under side 1, store it in $t1
+    li $t7, 0x00        # black
+    bne $t1, $t7, draw_map  # if there's something there we don't move, just draw the map as is
+# else there's space
+    j actually_move_right
+
+actually_move_right:
     sw $t3, prev_x1_pos  # store current x in prev_x1
     addi $t3, $t3, 2    # decrease x1 by 2 (move down)
     sw $t3, x1_pos       # store new x in x1_por
     
-    lw $t5, x2_pos
     sw $t5, prev_x2_pos
     addi $t5, $t5, 2    # decrease x2 by 2 (move down)
     sw $t5, x2_pos
@@ -456,6 +553,7 @@ move_right:
     
     jal map_pill
     j draw_map
+
 
 
 rotate:
