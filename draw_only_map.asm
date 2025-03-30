@@ -631,21 +631,21 @@ rotate:
     j draw_map
     
     S2:
+    addi $t9, $t9, -512     # go up 2 rows from side 1 (y-=2)
+    addi $t9, $t9, 8        # go 8 pixels right (x+=2)
+    lw $t2, 0($t9)
+    bne $t2, $t7, draw_map  # if the moving pixel's new location is occupied, don't do anything and go straight to drawing the map as is
     # x2 += 2
-    lw $t8, x2_pos
-    sw $t8, prev_x2_pos
-    addi $t8, $t8, 2 
-    sw $t8, x2_pos
+    sw $t5, prev_x2_pos
+    addi $t5, $t5, 2 
+    sw $t5, x2_pos
     # y2 -= 2
-    lw $t8, y2_pos
-    sw $t8, prev_y2_pos
-    addi $t8, $t8, -2 
-    sw $t8, y2_pos
+    sw $t6, prev_y2_pos
+    addi $t6, $t6, -2 
+    sw $t6, y2_pos
     # update prev x1,y1 to match current x1,y1
-    lw $t4, x1_pos
-    sw $t4, prev_x1_pos
-    lw $t5, y1_pos
-    sw $t5, prev_y1_pos
+    sw $t3, prev_x1_pos
+    sw $t4, prev_y1_pos
     # load orientation=3
     li $t2, 3
     sw $t2, orientation
@@ -653,6 +653,10 @@ rotate:
     j draw_map
     
     S3:
+    addi $t8, $t8, -512      # go down 2 rows from side 1 (y+=2)
+    addi $t8, $t8, -8       # go 8 pixels right (x+=2)
+    lw $t1, 0($t8)
+    bne $t1, $t7, draw_map  # if the moving pixel's new location is occupied, don't do anything and go straight to drawing the map as is
     # x1 -= 2
     lw $t8, x1_pos
     sw $t8, prev_x1_pos
