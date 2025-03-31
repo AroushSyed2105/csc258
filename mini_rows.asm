@@ -2,7 +2,7 @@
 map: .space 16384  # Allocate space for 64 rows * 64 columns * 4 bytes per word (since each word is 4 bytes) = 6840bytes
 DISPLAY_ADDR:   .word 0x10008000  # Memory-mapped address for the display
 
-first_of_color: .word 0x10010000
+
 .text
 ### MAP ARRAY SETUP ############################################################
 
@@ -58,7 +58,7 @@ sw $t5, 24($t0)
 sw $t3, 28($t0)
 sw $t5, 32($t0)
 sw $t5, 36($t0)
-sw $t5, 40($t0)
+sw $t3, 40($t0)
 sw $t5, 44($t0)
 
 addi $t0, $t0, 48
@@ -70,7 +70,7 @@ sw $t5, 16($t0)
 sw $t3, 20($t0)
 sw $t5, 24($t0)
 sw $t3, 28($t0)
-sw $t5, 32($t0)
+sw $t3, 32($t0)
 sw $t5, 36($t0)
 sw $t5, 40($t0)
 sw $t5, 44($t0)
@@ -81,13 +81,13 @@ sw $t4, 4($t0)
 sw $t4, 8($t0)
 sw $t3, 12($t0)
 sw $t4, 16($t0)
-sw $t4, 20($t0)
-sw $t5, 24($t0)
+sw $t3, 20($t0)
+sw $t3, 24($t0)
 sw $t3, 28($t0)
 sw $t5, 32($t0)
 sw $t5, 36($t0)
 sw $t5, 40($t0)
-sw $t5, 44($t0)
+sw $t3, 44($t0)
 
 addi $t0, $t0, 48
 sw $t3, 0($t0)
@@ -120,6 +120,7 @@ sw $t5, 44($t0)
 jal draw_map
 
     
+
 ### PARSE ROW BY ROW #######################################################################
 
     li $t0, 0           # Row counter (starting at 0)
@@ -154,13 +155,12 @@ jal draw_map
         reset_counter:  # next color different to current color
         bge $t6, 4, clear           # if more then 4 in a row, jump to clear function
         addi $t9, $t8, 4
-        sw $t9, first_of_color      # else, save next pixel to first_of_color
+
         li $t6, 1                   # and reset color counter
         j finish_clearing
     
         #_____________________________________________#
         clear:
-        #lw $t5, first_of_color      # first pixel to clear
         li $a3, 0                   # clear loop pixel counter
         
         clear_loop:
@@ -172,7 +172,6 @@ jal draw_map
         j clear_loop
         
         finish_clearing:
-        sw $t9, first_of_color
         li $t6, 1
         
         continue_parsing:
@@ -195,12 +194,13 @@ jal draw_map
     finish_searching:
     jal draw_map
     
+    
 ### PARSE COLUMN BY COLUMN #######################################################################
     
     li $t0, 0           # Column counter (starting at 0)
     li $t1, 0           # Row counter (starting at 0)
     li $t2, 10          # Number of columns
-    li $t3, 9           # Number of rows 
+    li $t3, 6           # Number of rows 
     la $t4, map         # Load base address of array into $t4
     li $t6, 1           # number of same color
     li $t7, 0x00        # black
@@ -230,29 +230,27 @@ jal draw_map
         bge $t6, 4, clear_column    # if more then 4 in a column, jump to clear function
         addi $t9, $t8, 40           # go to next line
         li $t6, 1                   # and reset color counter
-        j finish_clearing
+        j finish_clearing_column
     
         #_____________________________________________#
         clear_column:
-        #lw $t5, first_of_color      # first pixel to clear
         li $a3, 0                   # clear loop pixel counter
         
         clear_column_loop:
         bge $a3, $t6, finish_clearing_column
         sw $t7, 0($t9)              # clear current pixel (starts at first of color)
         
-        addi $t9, $t9, 4            # move to next pixel
+        addi $t9, $t9, 40            # move to next pixel
         addi $a3, $a3, 1            # increment loop counter
-        j clear_loop
+        j clear_column_loop
         
         finish_clearing_column:
         li $t6, 1
         
-        continue_searching:
+    continue_searching:
         
-    addi $a0, $a0, 4      # Move to the next column in the current row (map)
     addi $t1, $t1, 1      # Increment column counter
-    addi $t8, $t8, 4
+    addi $t8, $t8, 40
     j search_columns        # Continue looping through columns
 
     search_next_column:
@@ -261,7 +259,7 @@ jal draw_map
     addi $t0, $t0, 1                    # Increment column counter
     li $t1, 0                           # Reset row counter
     li $t6, 1                           # Reset color counter
-    sll $t8, $t6, 2                     # go to next column (byte offset of column counter)
+    sll $t8, $t0, 2                     # go to next column (byte offset of column counter)
     add $t8, $t8, $t4                   # add to map address to get next column start
     add $t9, $t8, $zero   # Update first of current color to be first of row
     j search_columns           # Continue looping through columns
@@ -273,6 +271,7 @@ jal draw_map
     
     
 ### DRAW #########################################################################################
+j end
 
 draw_map:
     li $t0, 0           # Row counter (starting at 0)
@@ -307,7 +306,8 @@ draw_map:
     addi $t9, $t9, 4
     j draw_rows           # Continue looping through rows
     
-    finish_drawing: jr $ra
+    finish_drawing: 
+    jr $ra
 
 
 end:
