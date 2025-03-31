@@ -374,6 +374,120 @@ DISPLAY_ADDR:   .word 0x10008000
     sw $t3, 6260($t0)
 
 
+virus1:
+
+draw_square1:
+li $t0, 0x10009020
+li $t1, 0 # pixel count
+li $t2, 0 # row count
+li $t3, 7 # pixel total
+li $t4, 5 # rows total
+li $t5, 0xFF0505
+
+draw_pixel1:
+bge $t1, $t3, next_row1
+sll $t6, $t1, 2
+add $t6, $t6, $t0
+sw $t5, 0($t6)
+addi $t1, $t1, 1
+j draw_pixel1
+
+next_row1:
+bge $t2, $t4, end1
+li $t1, 0
+addi $t2,$t2, 1
+addi $t0, $t0, 256
+j draw_pixel1
+
+end1:
+
+
+li $t8, 0xffffff
+subi $t0, $t0, 768
+sw $t8, 8($t0)
+sw $t8, 16($t0)
+li $t9, 0x0
+addi $t0, $t0, 256
+sw $t9, 8($t0)
+sw $t9, 16($t0)
+
+
+
+virus2:
+
+
+draw_square2:
+li $t0, 0x100087c0
+li $t1, 0 # pixel count
+li $t2, 0 # row count
+li $t3, 7 # pixel total
+li $t4, 5 # rows total
+li $t5, 0xFFcF00
+
+draw_pixel2:
+bge $t1, $t3, next_row2
+sll $t6, $t1, 2
+add $t6, $t6, $t0
+sw $t5, 0($t6)
+addi $t1, $t1, 1
+j draw_pixel2
+
+next_row2:
+bge $t2, $t4, end2
+li $t1, 0
+addi $t2,$t2, 1
+addi $t0, $t0, 256
+j draw_pixel2
+
+end2:
+
+li $t8, 0xffffff
+subi $t0, $t0, 768
+sw $t8, 8($t0)
+sw $t8, 16($t0)
+li $t9, 0x0
+addi $t0, $t0, 256
+sw $t9, 8($t0)
+sw $t9, 16($t0)
+
+
+
+virus3:
+
+
+draw_square3:
+li $t0, 0x1000b040
+li $t1, 0 # pixel count
+li $t2, 0 # row count
+li $t3, 7 # pixel total
+li $t4, 5 # rows total
+li $t5, 0x00cc30
+
+draw_pixel3:
+bge $t1, $t3, next_row3
+sll $t6, $t1, 2
+add $t6, $t6, $t0
+sw $t5, 0($t6)
+addi $t1, $t1, 1
+j draw_pixel3
+
+next_row3:
+bge $t2, $t4, end3
+li $t1, 0
+addi $t2,$t2, 1
+addi $t0, $t0, 256
+j draw_pixel3
+
+end3:
+
+li $t8, 0xffffff
+subi $t0, $t0, 768
+sw $t8, 8($t0)
+sw $t8, 16($t0)
+li $t9, 0x0
+addi $t0, $t0, 256
+sw $t9, 8($t0)
+sw $t9, 16($t0)
 
        
 
