@@ -1,10 +1,16 @@
     .data
 DISPLAY_ADDR:   .word 0x10008000 
 
+
+
     .text
-    li $t2, 0xffffff  # $t2 = green
-    li $t3, 0xfff000
-    li $t0, 0x10008000  # Load display base directly
+    li $t0, 0x1000912c  # Load display base directly
+    
+    li $t1, 0xffff00  # yellow
+    li $t2, 0x0000ff  # bllue
+    li $t3, 0x964b00  # brown
+    li $t4, 0x000000  # black
+    li $t5, 0xff0000  # red
 
  ## hat ###
     sw $t2, 1088($t0)
@@ -374,6 +380,15 @@ DISPLAY_ADDR:   .word 0x10008000
     sw $t3, 6260($t0)
 
 
+  
+
+
+
+       
+
+
+
+
 virus1:
 
 draw_square1:
@@ -488,14 +503,3 @@ li $t9, 0x0
 addi $t0, $t0, 256
 sw $t9, 8($t0)
 sw $t9, 16($t0)
-
-       
-
-
-
-
-
-
-
-
-    
