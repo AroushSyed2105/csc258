@@ -48,7 +48,7 @@ li $t4, 0x00F000 # green
 li $t5, 0x0000F0 # blue
 
 
-sw $t3, 0($t0)
+sw $t4, 0($t0)
 sw $t4, 4($t0)
 sw $t4, 8($t0)
 sw $t4, 12($t0)
@@ -133,6 +133,7 @@ jal draw_map
     
     # Calculate base address for the current row
     add $t8, $zero, $t4   # start address: map address
+    add $t9, $zero, $t4   # start address: map address
     
     parse_rows:
     bge $t0, $t2, finish_searching  # If row counter >= 10, end loop
