@@ -207,6 +207,7 @@ jal draw_map
     
     # Calculate base address for the current row
     add $t8, $zero, $t4   # start address: map address
+    add $t9, $t8, $zero
     
     search_columns:
     bge $t0, $t2, finish_searching_again  # If column counter >= 10, end loop
@@ -222,7 +223,7 @@ jal draw_map
     
         increment_color:  # next color same as current color
         addi $t6, $t6, 1    # increment color counter
-        beq $t1, 8, reset_color
+        beq $t1, 6, reset_color
         j continue_searching
         
         #_____________________________________________#
