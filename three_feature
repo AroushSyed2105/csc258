@@ -17,6 +17,7 @@ prev_y2_pos: .word 12
 col1: .word 0xff0000           # designates memory to col1
 col2: .word 0x00ff00    # designates memory to col2
 virusmap: .word 0
+reset_screen: .word 0
 static: .word 0
 SCREEN_WIDTH: .word 64 
 
@@ -34,18 +35,7 @@ jal color
 sw $t7, col2
 
 
-wait_for_key:
-    lw $t0, KEYBOARD_ADDR  # Load keyboard base address
-    lw $t1, 0($t0)                # Read if a key is pressed (1 if pressed, 0 if not)
-    beq $t1, $zero, wait_for_key  # Keep checking until a key is pressed
-    lw $t2, 4($t0)         # Get ASCII code of key pressed
 
-    # Move pixel based on key press
-    beq $t2, 0x65, easy_maps      # 'e'
-    beq $t2, 0x6D, medium_maps   #'m'
-    beq $t2, 0x68, hard_maps  # 'h' 
-
-    j wait_for_key
 
     
 ### SKIP FUNCTIONS: RANDOM, VERT LINE, HORIZ LINE ####################################################################
@@ -116,6 +106,43 @@ end_vert:
 ### MAP ARRAY SETUP ############################################################
 
 main:
+  wait_for_key:
+       li $t0, 0   # row counter
+        li $t1, 0   # column counter
+        li $t2, 64  # height
+        li $t3, 64  # width
+        li $t4, 0xCA00AA    # white, unlike us
+        li $t5, 0x10008000
+        
+      draw_bg:
+      bge $t1, $t3, next_one
+      sw $t4, 0($t5)
+      addi $t5, $t5, 4
+      addi $t1, $t1, 1
+      j draw_bg
+      
+      next_one:
+      bge $t0, $t2, done_bro
+      li $t1, 0
+      addi $t0, $t0, 1
+      j draw_bg
+      
+      done_bro:
+
+    jal clear_map
+  
+    lw $t0, KEYBOARD_ADDR  # Load keyboard base address
+    lw $t1, 0($t0)                # Read if a key is pressed (1 if pressed, 0 if not)
+    beq $t1, $zero, wait_for_key  # Keep checking until a key is pressed
+    lw $t2, 4($t0)         # Get ASCII code of key pressed
+
+    # Move pixel based on key press
+    beq $t2, 0x65, easy_maps      # 'e'
+    beq $t2, 0x6D, medium_maps   #'m'
+    beq $t2, 0x68, hard_maps  # 'h' 
+
+    j wait_for_key
+
     li $t0, 0           # Row counter (starting at 0)
     li $t1, 0           # Column counter (starting at 0)
     li $t2, 64          # Number of rows
@@ -214,7 +241,39 @@ hard_maps:
     sw $t1, virusmap
     j lets_be_hard
   
-    
+### clearing map###################################
+clear_map:
+  li $t0, 0           # row counter
+  li $t1, 0           # column counter
+  li $t2, 64          # total rows
+  li $t3, 64          # total cols
+  li $t4, 0x00   # black color
+  la $t6, map         # load base address of map
+
+row_loop:
+  li $t1, 0           # Reset column to 0 for new row
+
+col_loop:
+  # Calculate address for current pixel
+  mul $t7, $t0, 256   # row_offset = row * 256 (stride)
+  mul $t8, $t1, 4     # col_offset = col * 4 (4 bytes per pixel)
+  add $t9, $t7, $t8   # total offset = row_offset + col_offset
+  add $t9, $t6, $t9   # final address = base map address + offset
+
+  # Store 4 pixels to create a full unit
+  sw $t4, 0($t9)      # store pixel 1 (top-left)
+  sw $t4, 4($t9)      # store pixel 2 (top-right)
+  sw $t4, 256($t9)    # store pixel 3 (bottom-left)
+  sw $t4, 260($t9)    # store pixel 4 (bottom-right)
+
+  addi $t1, $t1, 2    # Move to next unit (2 cols per unit)
+  blt $t1, $t3, col_loop  # If col < 64, continue
+
+  addi $t0, $t0, 2    # Move to next unit (2 rows per unit)
+  blt $t0, $t2, row_loop  # If row < 64, continue
+
+  jr $ra              # return
+
 ### VIRUSES ################################################################################################# 
 
 ### LETS BE EASY ############################################################################################
@@ -680,7 +739,7 @@ game_loop:
     beq $t2, 0x73, move_down    # 's' (0x73 ASCII for s)
     beq $t2, 0x64, move_right  # 'd' (0x64 ASCII for d)
     beq $t2, 0x71, exit_game   # 'q' (0x71 ASCII for q)
-    beq $t2, 0x72, game_over      # 'r'
+    beq $t2, 0x72, wait_for_key      # 'r'
     j draw_map
 
 # DOWN
@@ -1118,8 +1177,10 @@ draw_map:
     syscall
     j game_loop
 
+
+
 game_over:
-  j main
+  j wait_for_key
   
 
 exit_game:
