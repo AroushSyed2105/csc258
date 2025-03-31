@@ -26,6 +26,7 @@ SCREEN_WIDTH: .word 64
 .globl main
 li $v0, 32      #frames per second or something
 
+
 # assign color1 & color2 & map
 jal random
 jal color
@@ -34,10 +35,6 @@ jal random
 jal color
 sw $t7, col2
 
-
-
-
-    
 ### SKIP FUNCTIONS: RANDOM, VERT LINE, HORIZ LINE ####################################################################
 j main
 
@@ -107,7 +104,7 @@ end_vert:
 
 main:
   wait_for_key:
-       li $t0, 0   # row counter
+        li $t0, 0   # row counter
         li $t1, 0   # column counter
         li $t2, 64  # height
         li $t3, 64  # width
@@ -740,6 +737,7 @@ game_loop:
     beq $t2, 0x64, move_right  # 'd' (0x64 ASCII for d)
     beq $t2, 0x71, exit_game   # 'q' (0x71 ASCII for q)
     beq $t2, 0x72, wait_for_key      # 'r'
+    beq $t2,0x70, pause_your_face # "p"
     j draw_map
 
 # DOWN
@@ -1177,11 +1175,72 @@ draw_map:
     syscall
     j game_loop
 
+pause_your_face:
+    li $t0, 0   # row counter
+        li $t1, 0   # column counter
+        li $t6, 64  # height
+        li $t3, 64  # width
+        li $t4, 0xCA00AA    # white, unlike us
+        li $t5, 0x10008000
+        
+      draw_pause:
+      bge $t1, $t3, next_one_bro
+      sw $t4, 0($t5)
+      addi $t5, $t5, 4
+      addi $t1, $t1, 1
+      j draw_pause
+      
+      next_one_bro:
+      bge $t0, $t6, done_bro_bro
+      li $t1, 0
+      addi $t0, $t0, 1
+      j draw_pause
+      
+      done_bro_bro:
 
+      # draw white lines
+      li $t1, 0xffffff # $t1 = white
+      lw $t0, DISPLAY_ADDR # $t0 = base address for display
+      
+      sw $t2, 8( $t0 )       # paint the third unit on the first row yellow
+      sw $t2, 12( $t0 )      # paint the fourth unit on the first row magenta
+      sw $t2, 16( $t0 )      # paint the fifth unit on the first row cyan
+      sw $t2, 20( $t0 )      # paint the sixth unit on the first row white
+      sw $t2, 24($t0)
+            
 
-game_over:
-  j wait_for_key
-  
+      lw $t0, KEYBOARD_ADDR  # Load keyboard base address
+      lw $t1, 0($t0)         # Read if a key is pressed (1 if pressed, 0 if not)
+      beq $t1, $zero, pause_your_face # If no key press we just want t0 redraw screen 
+      lw $t2, 4($t0)         # Get ASCII code of key pressed
+      beq $t2 , 0x20, unpause_your_face
+      j pause_your_face
+
+unpause_your_face:
+  li $t0, 0   # row counter
+        li $t1, 0   # column counter
+        li $t6, 64  # height
+        li $t3, 64  # width
+        li $t4, 0x00    # white, unlike us
+        li $t5, 0x10008000
+        
+      undraw_it:
+      bge $t1, $t3, next_onee
+      sw $t4, 0($t5)
+      addi $t5, $t5, 4
+      addi $t1, $t1, 1
+      j undraw_it
+      
+      next_onee:
+      bge $t0, $t6, done_broo
+      li $t1, 0
+      addi $t0, $t0, 1
+      j undraw_it
+      
+      done_broo:
+
+      j game_loop
+        
 
 exit_game:
   
