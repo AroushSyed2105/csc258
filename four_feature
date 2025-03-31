@@ -1199,22 +1199,116 @@ pause_your_face:
       done_bro_bro:
 
       # draw white lines
-      li $t1, 0xffffff # $t1 = white
-      lw $t0, DISPLAY_ADDR # $t0 = base address for display
-      
-      sw $t2, 8( $t0 )       # paint the third unit on the first row yellow
-      sw $t2, 12( $t0 )      # paint the fourth unit on the first row magenta
-      sw $t2, 16( $t0 )      # paint the fifth unit on the first row cyan
-      sw $t2, 20( $t0 )      # paint the sixth unit on the first row white
-      sw $t2, 24($t0)
-            
+        
+      li $t2, 0xffffff  # $t2 = green
+      li $t0, 0x10008000  # Load display base directly
+      sw $t2, 5712($t0)   # paint the third unit on the first row green
+      sw $t2, 5968($t0)
+      sw $t2, 6224($t0)
+      sw $t2, 6480($t0)
+      sw $t2, 6736($t0)
+      sw $t2, 6992($t0)
+      sw $t2, 7248($t0)
+      sw $t2, 7504($t0)
+      sw $t2, 7760($t0)
+      sw $t2, 8016($t0)
+      sw $t2, 8272($t0)
+  
+      sw $t2, 5716($t0)   # paint the third unit on the first row green
+      sw $t2, 5972($t0)
+      sw $t2, 6228($t0)
+      sw $t2, 6484($t0)
+      sw $t2, 6740($t0)
+      sw $t2, 6996($t0)
+      sw $t2, 7252($t0)
+      sw $t2, 7508($t0)
+      sw $t2, 7764($t0)
+      sw $t2, 8020($t0)
+      sw $t2, 8276($t0)
+  
+      sw $t2, 5720($t0)   # paint the third unit on the first row green
+      sw $t2, 5976($t0)
+      sw $t2, 6232($t0)
+      sw $t2, 6488($t0)
+      sw $t2, 6744($t0)
+      sw $t2, 7000($t0)
+      sw $t2, 7256($t0)
+      sw $t2, 7512($t0)
+      sw $t2, 7768($t0)
+      sw $t2, 8024($t0)
+      sw $t2, 8280($t0)
+  
+      sw $t2, 5724($t0)   # paint the third unit on the first row green
+      sw $t2, 5980($t0)
+      sw $t2, 6236($t0)
+      sw $t2, 6492($t0)
+      sw $t2, 6748($t0)
+      sw $t2, 7004($t0)
+      sw $t2, 7260($t0)
+      sw $t2, 7516($t0)
+      sw $t2, 7772($t0)
+      sw $t2, 8028($t0)
+      sw $t2, 8284($t0)
+  
+      sw $t2, 5792($t0)   # paint the third unit on the first row green
+      sw $t2, 6048($t0)
+      sw $t2, 6304($t0)
+      sw $t2, 6560($t0)
+      sw $t2, 6816($t0)
+      sw $t2, 7072($t0)
+      sw $t2, 7328($t0)
+      sw $t2, 7584($t0)
+      sw $t2, 7840($t0)
+      sw $t2, 8096($t0)
+      sw $t2, 8352($t0)
+  
+      sw $t2, 5796($t0)   # paint the third unit on the first row green
+      sw $t2, 6052($t0)
+      sw $t2, 6308($t0)
+      sw $t2, 6564($t0)
+      sw $t2, 6820($t0)
+      sw $t2, 7076($t0)
+      sw $t2, 7332($t0)
+      sw $t2, 7588($t0)
+      sw $t2, 7844($t0)
+      sw $t2, 8100($t0)
+      sw $t2, 8356($t0)
+  
+      sw $t2, 5800($t0)   # paint the third unit on the first row green
+      sw $t2, 6056($t0)
+      sw $t2, 6312($t0)
+      sw $t2, 6568($t0)
+      sw $t2, 6824($t0)
+      sw $t2, 7080($t0)
+      sw $t2, 7336($t0)
+      sw $t2, 7592($t0)
+      sw $t2, 7848($t0)
+      sw $t2, 8104($t0)
+      sw $t2, 8360($t0)
+  
+      sw $t2, 5804($t0)   # paint the third unit on the first row green
+      sw $t2, 6060($t0)
+      sw $t2, 6316($t0)
+      sw $t2, 6572($t0)
+      sw $t2, 6828($t0)
+      sw $t2, 7084($t0)
+      sw $t2, 7340($t0)
+      sw $t2, 7596($t0)
+      sw $t2, 7852($t0)
+      sw $t2, 8108($t0)
+      sw $t2, 8364($t0)
 
       lw $t0, KEYBOARD_ADDR  # Load keyboard base address
       lw $t1, 0($t0)         # Read if a key is pressed (1 if pressed, 0 if not)
-      beq $t1, $zero, pause_your_face # If no key press we just want t0 redraw screen 
-      lw $t2, 4($t0)         # Get ASCII code of key pressed
-      beq $t2 , 0x20, unpause_your_face
-      j pause_your_face
+      beq $t1, $zero, waiting # If no key press we just want t0 redraw screen 
+
+      waiting:
+         lw $t0, KEYBOARD_ADDR  # Load keyboard base address
+         lw $t1, 0($t0)         # Read if a key is pressed (1 if pressed, 0 if not)
+         beq $t1, $zero, waiting # If no key press we just want t0 redraw screen 
+         lw $t2, 4($t0)         # Get ASCII code of key pressed
+         beq $t2 , 0x20, unpause_your_face
+      
 
 unpause_your_face:
   li $t0, 0   # row counter
@@ -1270,7 +1364,7 @@ li $t1, 0xffffff # $t1 = white
 li $t2, 0x00ff00 # $t2 = green
 lw $t0, DISPLAY_ADDR # $t0 = base address for display
 
-sw $t2, 8( $t0 )       # paint the third unit on the first row yellow
+sw $t2, 8($t0)       # paint the third unit on the first row yellow
 sw $t2, 12( $t0 )      # paint the fourth unit on the first row magenta
 sw $t2, 16( $t0 )      # paint the fifth unit on the first row cyan
 sw $t2, 20( $t0 )      # paint the sixth unit on the first row white
