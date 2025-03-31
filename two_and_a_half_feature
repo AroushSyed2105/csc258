@@ -33,6 +33,7 @@ jal random
 jal color
 sw $t7, col2
 
+
 wait_for_key:
     lw $t0, KEYBOARD_ADDR  # Load keyboard base address
     lw $t1, 0($t0)                # Read if a key is pressed (1 if pressed, 0 if not)
@@ -147,6 +148,8 @@ next_row:
     j loop_rows           # Continue looping through rows
 
 end_loop:
+
+jal draw_map
 
 ### SELECT MAP #################################################################
 
@@ -1116,9 +1119,239 @@ draw_map:
     j game_loop
 
 game_over:
+  j main
   
 
 exit_game:
+  
+li $t0, 0   # row counter
+li $t1, 0   # column counter
+li $t2, 20 # height
+li $t3, 64  # width
+li $t4, 0xCA00AA    # white, unlike us
+li $t5, 0x10008000
+
+draw_pixel:
+bge $t1, $t3, next_line
+sw $t4, 0($t5)
+addi $t5, $t5, 4
+addi $t1, $t1, 1
+j draw_pixel
+
+next_line:
+bge $t0, $t2, done
+li $t1, 0
+addi $t0, $t0, 1
+j draw_pixel
+
+done:
+
+li $t1, 0xffffff # $t1 = white
+li $t2, 0x00ff00 # $t2 = green
+lw $t0, DISPLAY_ADDR # $t0 = base address for display
+
+sw $t2, 8( $t0 )       # paint the third unit on the first row yellow
+sw $t2, 12( $t0 )      # paint the fourth unit on the first row magenta
+sw $t2, 16( $t0 )      # paint the fifth unit on the first row cyan
+sw $t2, 20( $t0 )      # paint the sixth unit on the first row white
+sw $t2, 24($t0)
+
+sw $t2, 4( $t0 ) # paint the second unit on the first row green
+sw $t2, 256( $t0 )  # Adjusted: 128 -> 256 (1 row down)
+sw $t2, 512( $t0 )  # Adjusted: 256 -> 512 (2 rows down)
+sw $t2, 768( $t0 )  # Adjusted: 384 -> 768 (3 rows down)
+sw $t2, 1024( $t0 ) # Adjusted: 512 -> 1024 (4 rows down)
+
+sw $t2, 1284( $t0 ) # Adjusted: 648 -> 1296
+sw $t2, 1288( $t0 ) # Adjusted: 644 -> 1288
+sw $t2, 1292( $t0 ) # Adjusted: 648 -> 1296
+sw $t2, 1296( $t0 ) # Adjusted: 652 -> 1304
+sw $t2, 1300( $t0 ) # Adjusted: 648 -> 1296
+sw $t2, 1304( $t0 ) # Adjusted: 652 -> 1304
+
+sw $t2, 1048( $t0 ) # Adjusted: 656 -> 1312
+sw $t2, 792( $t0 ) # Adjusted: 656 -> 1312
+
+sw $t2, 788( $t0 ) # Adjusted: 656 -> 1312
+sw $t2, 784( $t0 ) # Adjusted: 656 -> 1312
+
+
+###########A
+sw $t2, 36( $t0 )  
+sw $t2, 40( $t0 )  
+sw $t2, 44( $t0 )  
+sw $t2, 48( $t0 )  
+sw $t2, 52($t0 ) 
+sw $t2, 56($t0 ) 
+
+sw $t2, 292($t0 )   # Adjusted: 416 -> 832 (13 rows down)
+sw $t2, 548($t0 )   # Adjusted: 416 -> 832 (13 rows down)
+sw $t2, 804($t0 )   # Adjusted: 416 -> 832 (13 rows down)
+sw $t2, 1060($t0 )   # Adjusted: 416 -> 832 (13 rows down)
+sw $t2, 1316($t0 )   # Adjusted: 416 -> 832 (13 rows down)
+
+sw $t2, 56($t0 ) 
+sw $t2, 312($t0 ) 
+sw $t2, 568($t0 ) 
+sw $t2, 824($t0 ) 
+sw $t2, 1080($t0 ) 
+sw $t2, 1336($t0 ) 
+
+sw $t2, 820( $t0 )
+sw $t2, 816( $t0 )
+sw $t2, 812( $t0 )
+sw $t2, 808( $t0 )
+sw $t2, 804( $t0 )
+
+### M
+sw $t2, 68($t0 ) 
+sw $t2, 324($t0 ) 
+sw $t2, 580($t0 ) 
+sw $t2, 836($t0 ) 
+sw $t2, 1092($t0 ) 
+sw $t2, 1348($t0 ) 
+
+sw $t2, 328($t0 ) 
+sw $t2, 588($t0 ) 
+sw $t2, 848($t0 ) 
+sw $t2, 596($t0 ) 
+sw $t2, 344($t0 ) 
+
+sw $t2, 92($t0 ) 
+sw $t2, 348($t0 ) 
+sw $t2, 604($t0 ) 
+sw $t2, 860($t0 ) 
+sw $t2, 1116($t0 ) 
+sw $t2, 1372($t0 ) 
+
+### E
+
+sw $t2, 104($t0 ) 
+sw $t2, 360($t0 ) 
+sw $t2, 616($t0 ) 
+sw $t2, 872($t0 ) 
+sw $t2, 1128($t0 ) 
+sw $t2, 1384($t0 ) 
+
+sw $t2, 104($t0 )
+sw $t2, 108($t0 )
+sw $t2, 112($t0 )
+sw $t2, 116($t0 )
+sw $t2, 120($t0 )
+sw $t2, 124($t0 )
+
+sw $t2, 1384($t0 ) 
+sw $t2, 1388($t0 ) 
+sw $t2, 1392($t0 ) 
+sw $t2, 1396($t0 ) 
+sw $t2, 1400($t0 ) 
+sw $t2, 1404($t0 ) 
+
+sw $t2, 872($t0 ) 
+sw $t2, 876($t0 ) 
+sw $t2, 880($t0 ) 
+sw $t2, 884($t0 ) 
+sw $t2, 888($t0 ) 
+
+### O
+
+sw $t1, 3140($t0 )
+sw $t1, 3396($t0 ) 
+sw $t1, 3652($t0 ) 
+sw $t1, 3908($t0 ) 
+sw $t1, 4164($t0 ) 
+
+sw $t1, 4424($t0 ) 
+sw $t1, 4428($t0 ) 
+sw $t1, 4432($t0 ) 
+sw $t1, 4436($t0 ) 
+sw $t1, 4440($t0 ) 
+
+sw $t1, 4188($t0 ) 
+sw $t1, 3932($t0 ) 
+sw $t1, 3676($t0 ) 
+sw $t1, 3420($t0 ) 
+sw $t1, 3164($t0 ) 
+
+sw $t1, 2888($t0 )
+sw $t1, 2892($t0 )
+sw $t1, 2896($t0 )
+sw $t1, 2900($t0 )
+sw $t1, 2904($t0 )
+
+## V
+sw $t1, 2920($t0 )
+sw $t1, 3176($t0 )
+sw $t1, 3432($t0 )
+sw $t1, 3688($t0 )
+
+sw $t1, 3948($t0 )
+sw $t1, 4204($t0 )
+
+sw $t1, 4464($t0 )
+sw $t1, 4468($t0 )
+
+sw $t1, 3960($t0 )
+sw $t1, 4216($t0 )
+
+sw $t1, 2940($t0 )
+sw $t1, 3196($t0 )
+sw $t1, 3452($t0 )
+sw $t1, 3708($t0 )
+
+## E
+sw $t1, 2952($t0 )
+sw $t1, 2956($t0 )
+sw $t1, 2960($t0 )
+sw $t1, 2964($t0 )
+sw $t1, 2968($t0 )
+sw $t1, 2972($t0 )
+
+sw $t1, 3208($t0 )
+sw $t1, 3464($t0 )
+sw $t1, 3720($t0 )
+sw $t1, 3976($t0 )
+sw $t1, 4232($t0 )
+sw $t1, 4488($t0 )
+
+sw $t1, 4492($t0 )
+sw $t1, 4496($t0 )
+sw $t1, 4500($t0 )
+sw $t1, 4504($t0 )
+sw $t1, 4508($t0 )
+
+sw $t1, 3724($t0 )
+sw $t1, 3728($t0 )
+sw $t1, 3732($t0 )
+sw $t1, 3736($t0 )
+
+## R ###
+sw $t1, 4520($t0 )
+sw $t1, 4264($t0 )
+sw $t1, 4008($t0 )
+sw $t1, 3752($t0 )
+sw $t1, 3496($t0 )
+sw $t1, 3240($t0 )
+sw $t1, 2984($t0 )
+
+sw $t1, 2984($t0 )
+sw $t1, 2988($t0 )
+sw $t1, 2992($t0 )
+sw $t1, 2996($t0 )
+sw $t1, 3000($t0 )
+
+sw $t1, 3260($t0 )
+sw $t1, 3516($t0 )
+
+sw $t1, 3768($t0 )
+sw $t1, 3764($t0 )
+sw $t1, 3760($t0 )
+sw $t1, 3756($t0 )
+
+sw $t1, 4028($t0)
+sw $t1, 4284($t0)
+sw $t1, 4540($t0)
+
   li $v0, 33
   li $a0, 68
   li $a1, 250
